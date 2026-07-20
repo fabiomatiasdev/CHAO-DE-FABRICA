@@ -101,9 +101,9 @@
         <div class="form-row">
             <!-- Oficina Parceira -->
             <div class="form-group">
-                <label for="oficina_faccao_id" class="form-label">Oficina Terceirizada (Costura)</label>
+                <label for="oficina_faccao_id" class="form-label">Oficina Terceirizada (Opcional - Definir agora ou pós-corte)</label>
                 <select id="oficina_faccao_id" name="oficina_faccao_id" class="form-control">
-                    <option value="">-- Produção Interna / Não Definida --</option>
+                    <option value="">-- Definir Posteriormente / Produção Interna --</option>
                     <?php foreach ($oficinas as $of): ?>
                         <option value="<?= $of['id'] ?>" <?= ($op['oficina_faccao_id'] ?? 0) == $of['id'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($of['nome']) ?>
@@ -112,26 +112,45 @@
                 </select>
             </div>
 
-            <!-- Quantidade Total (Calculada) -->
+            <!-- Local de Armazenamento de Destino (Acabados) -->
             <div class="form-group">
-                <label for="quantidade" class="form-label">Quantidade Total do Lote (Soma das variações)</label>
-                <input type="number" id="quantidade" name="quantidade" class="form-control" value="<?= isset($op) ? htmlspecialchars($op['quantidade']) : '0' ?>" readonly style="background-color:#f1f5f9; font-weight:bold; cursor:not-allowed;" required>
+                <label for="local_estoque_id" class="form-label">Local de Estoque (Destino dos Acabados)</label>
+                <select id="local_estoque_id" name="local_estoque_id" class="form-control">
+                    <option value="">-- Depósito Padrão de Acabados --</option>
+                    <?php if (!empty($locaisEstoque)): ?>
+                        <?php foreach ($locaisEstoque as $loc): ?>
+                            <option value="<?= $loc['id'] ?>" <?= ($op['local_estoque_id'] ?? 0) == $loc['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($loc['nome']) ?> (<?= ucfirst($loc['tipo']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
             </div>
         </div>
 
         <div class="form-row">
+            <!-- Quantidade Estimada (Calculada) -->
+            <div class="form-group">
+                <label for="quantidade" class="form-label">Estimativa / Perspectiva de Peças do Lote (Soma)</label>
+                <input type="number" id="quantidade" name="quantidade" class="form-control" value="<?= isset($op) ? htmlspecialchars($op['quantidade']) : '0' ?>" readonly style="background-color:#f1f5f9; font-weight:bold; cursor:not-allowed;" required>
+                <small class="text-muted" style="font-size: 11px; display:block; margin-top:3px;">A quantidade real produzida será apurada no corte e finalização do processo.</small>
+            </div>
+
             <!-- Operadores -->
             <div class="form-group">
                 <label for="operadores" class="form-label">Qtd. de Operadores Alocados *</label>
                 <input type="number" id="operadores" name="operadores" class="form-control" value="<?= isset($op) ? htmlspecialchars($op['operadores']) : '1' ?>" placeholder="Ex: 1" min="1" required>
             </div>
+        </div>
 
+        <div class="form-row">
             <!-- Prazo -->
             <div class="form-group">
                 <label for="prazo" class="form-label">Prazo Final para Entrega *</label>
                 <input type="date" id="prazo" name="prazo" class="form-control" value="<?= htmlspecialchars($op['prazo'] ?? '') ?>" required>
             </div>
         </div>
+
 
         <!-- Status -->
         <div class="form-group">

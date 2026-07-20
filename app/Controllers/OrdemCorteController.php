@@ -134,13 +134,20 @@ class OrdemCorteController extends Controller
             }
         }
 
+        $materiasPrimas = Database::fetchAll(
+            "SELECT id, nome, unidade_medida, estoque_atual FROM materias_primas WHERE tenant_id = :tenant_id ORDER BY nome ASC",
+            ['tenant_id' => $tenantId]
+        );
+
         $this->render('corte/form', [
             'title' => 'Lançar Ordem de Corte',
-            'subtitle' => 'Registre a quantidade de peças cortadas para cada variação da OP',
+            'subtitle' => 'Registre a quantidade de peças cortadas e o consumo real de insumos/tecido',
             'ops' => $ops,
+            'materiasPrimas' => $materiasPrimas,
             'action' => '/corte/novo'
         ]);
     }
+
 
     /**
      * Salvar ordem de corte.
@@ -155,6 +162,11 @@ class OrdemCorteController extends Controller
         $ordem_producao_id = (int)($_POST['ordem_producao_id'] ?? 0);
         $responsavel = trim($_POST['responsavel'] ?? '');
         $data_corte = $_POST['data_corte'] ?? date('Y-m-d');
+        $finalizar_corte = !empty($_POST['finalizar_corte']);
+
+        $materia_prima_id = !empty($_POST['materia_prima_id']) ? (int)$_POST['materia_prima_id'] : null;
+        $quantidade_real_utilizada = !empty($_POST['quantidade_real_utilizada']) ? (float)$_POST['quantidade_real_utilizada'] : 0.0;
+        $unidade_medida = trim($_POST['unidade_medida'] ?? '');
         
         $variante_ids = $_POST['variante_ids'] ?? [];
         $quantidades_cortadas = $_POST['quantidades_cortadas'] ?? [];
@@ -194,8 +206,8 @@ class OrdemCorteController extends Controller
 
             // 1. Inserir Ordem de Corte na tabela principal
             $stmt = $db->prepare(
-                "INSERT INTO ordens_corte (tenant_id, ordem_producao_id, produto_variante_id, tamanho, quantidade_cortada, responsavel, data_corte) 
-                 VALUES (:tenant_id, :ordem_producao_id, :produto_variante_id, :tamanho, :quantidade_cortada, :responsavel, :data_corte)"
+                "INSERT INTO ordens_corte (tenant_id, ordem_producao_id, produto_variante_id, tamanho, quantidade_cortada, responsavel, data_corte, materia_prima_id, quantidade_real_utilizada, unidade_medida, status) 
+                 VALUES (:tenant_id, :ordem_producao_id, :produto_variante_id, :tamanho, :quantidade_cortada, :responsavel, :data_corte, :materia_prima_id, :quantidade_real_utilizada, :unidade_medida, :status)"
             );
             $stmt->execute([
                 'tenant_id' => $tenantId,
@@ -204,9 +216,37 @@ class OrdemCorteController extends Controller
                 'tamanho' => $tamanho,
                 'quantidade_cortada' => $quantidade_total_cortada,
                 'responsavel' => $responsavel,
-                'data_corte' => $data_corte
+                'data_corte' => $data_corte,
+                'materia_prima_id' => $materia_prima_id,
+                'quantidade_real_utilizada' => $quantidade_real_utilizada,
+                'unidade_medida' => $unidade_medida,
+                'status' => $finalizar_corte ? 'concluido' : 'em andamento'
             ]);
             $ordemCorteId = $db->lastInsertId();
+
+            // 1.1 Baixa no estoque de matéria-prima real utilizada (se informado)
+            if ($materia_prima_id && $quantidade_real_utilizada > 0) {
+                $db->prepare(
+                    "UPDATE materias_primas 
+                     SET estoque_atual = MAX(0, estoque_atual - :qtd) 
+                     WHERE id = :mp_id AND tenant_id = :tenant_id"
+                )->execute([
+                    'qtd' => $quantidade_real_utilizada,
+                    'mp_id' => $materia_prima_id,
+                    'tenant_id' => $tenantId
+                ]);
+
+                $db->prepare(
+                    "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id) 
+                     VALUES (:tenant_id, 'materia_prima', :mp_id, :qtd, 'saida', :motivo, :user_id)"
+                )->execute([
+                    'tenant_id' => $tenantId,
+                    'mp_id' => $materia_prima_id,
+                    'qtd' => $quantidade_real_utilizada,
+                    'motivo' => "Consumo real no Corte da OP #{$ordem_producao_id}",
+                    'user_id' => $_SESSION['user_id'] ?? null
+                ]);
+            }
 
             // 2. Inserir variações cortadas na tabela pivot ordens_corte_variantes
             $stmtVar = $db->prepare(
@@ -301,8 +341,8 @@ class OrdemCorteController extends Controller
                 
                 $totalCortado = (int)($corteInfo['total_cortado'] ?? 0);
 
-                // 3.3 O status da etapa de corte só passa a ser "conclúido" se o total cortado acumulado atingir a meta da variação
-                $novoStatusCorte = ($totalCortado >= $metaQtd) ? 'conclúido' : 'em andamento';
+                // 3.3 Se o usuário marcou para finalizar o corte ou se atingiu a meta estimada
+                $novoStatusCorte = ($finalizar_corte || $totalCortado >= $metaQtd) ? 'concluído' : 'em andamento';
 
                 $stmtEtapaCorte->execute([
                     'status' => $novoStatusCorte,
@@ -325,6 +365,7 @@ class OrdemCorteController extends Controller
                  SET status = 'em andamento' 
                  WHERE id = :op_id AND status = 'aberta'"
             )->execute(['op_id' => $ordem_producao_id]);
+
 
             $db->commit();
             $this->setFlash('success', 'Ordem de Corte registrada e status do Chão de Fábrica atualizado.');

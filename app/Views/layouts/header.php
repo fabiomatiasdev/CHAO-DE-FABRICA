@@ -93,12 +93,16 @@ $isActive = function($path) use ($currentUri) {
             </a>
 
             <div class="sidebar-category">ESTOQUE</div>
+            <a href="/estoque/locais" class="sidebar-item <?= $isActive('/estoque/locais') ?>">
+                <i data-lucide="warehouse"></i> Locais de Armazenagem
+            </a>
             <a href="/estoque/ajuste" class="sidebar-item <?= $isActive('/estoque/ajuste') ?>">
                 <i data-lucide="sliders"></i> Ajuste de Insumos
             </a>
             <a href="/produtos/estoque" class="sidebar-item <?= $isActive('/produtos/estoque') ?>">
                 <i data-lucide="package"></i> Estoque de Acabados
             </a>
+
 
             <div class="sidebar-category">RELATÓRIOS</div>
             <a href="/relatorios/curva-abc" class="sidebar-item <?= $isActive('/relatorios/curva-abc') ?>">

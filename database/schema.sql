@@ -285,3 +285,34 @@ CREATE TABLE IF NOT EXISTS `produtos_variantes` (
   CONSTRAINT `fk_variantes_modelo` FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 20. Locais de Estoque (Armazenadores)
+CREATE TABLE IF NOT EXISTS `locais_estoque` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `nome` VARCHAR(255) NOT NULL,
+  `tipo` VARCHAR(50) NOT NULL DEFAULT 'acabados',
+  `descricao` TEXT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'ativo',
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_locais_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 21. Envios para Facção
+CREATE TABLE IF NOT EXISTS `envios_faccao` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `ordem_producao_id` INT NOT NULL,
+  `ordem_corte_id` INT NULL,
+  `oficina_faccao_id` INT NOT NULL,
+  `quantidade_enviada` INT NOT NULL DEFAULT 0,
+  `etapa_destino` VARCHAR(100) NOT NULL DEFAULT 'Costura',
+  `data_envio` DATE NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'enviado',
+  `observacoes` TEXT NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_envios_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_envios_op` FOREIGN KEY (`ordem_producao_id`) REFERENCES `ordens_producao` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_envios_oficina` FOREIGN KEY (`oficina_faccao_id`) REFERENCES `oficinas_faccoes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+

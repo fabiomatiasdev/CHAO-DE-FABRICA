@@ -281,3 +281,34 @@ CREATE TABLE IF NOT EXISTS `produtos_variantes` (
   FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
 );
 
+-- 20. Locais de Estoque (Armazenadores)
+CREATE TABLE IF NOT EXISTS `locais_estoque` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `tenant_id` INTEGER NOT NULL,
+  `nome` VARCHAR(255) NOT NULL,
+  `tipo` VARCHAR(50) NOT NULL DEFAULT 'acabados',
+  `descricao` TEXT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'ativo',
+  `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+);
+
+-- 21. Envios para Facção
+CREATE TABLE IF NOT EXISTS `envios_faccao` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `tenant_id` INTEGER NOT NULL,
+  `ordem_producao_id` INTEGER NOT NULL,
+  `ordem_corte_id` INTEGER NULL,
+  `oficina_faccao_id` INTEGER NOT NULL,
+  `quantidade_enviada` INTEGER NOT NULL DEFAULT 0,
+  `etapa_destino` VARCHAR(100) NOT NULL DEFAULT 'Costura',
+  `data_envio` DATE NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'enviado',
+  `observacoes` TEXT NULL,
+  `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`ordem_producao_id`) REFERENCES `ordens_producao` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`oficina_faccao_id`) REFERENCES `oficinas_faccoes` (`id`) ON DELETE CASCADE
+);
+
+

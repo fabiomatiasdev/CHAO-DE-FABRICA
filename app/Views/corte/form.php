@@ -40,6 +40,34 @@
             </div>
         </div>
 
+        <!-- Seção de Consumo Real de Matéria-Prima / Tecido -->
+        <div style="margin-top: 20px; margin-bottom: 25px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background-color: #f8fafc;">
+            <h4 style="margin:0 0 15px 0; font-size:14px; font-weight:600; color:#334155;">Consumo Real de Tecido / Matéria-Prima (Opcional)</h4>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label for="materia_prima_id" class="form-label">Tecido / Tecido Principal Utilizado</label>
+                    <select id="materia_prima_id" name="materia_prima_id" class="form-control">
+                        <option value="">-- Selecione o Tecido / Matéria-Prima --</option>
+                        <?php if (!empty($materiasPrimas)): ?>
+                            <?php foreach ($materiasPrimas as $mp): ?>
+                                <option value="<?= $mp['id'] ?>" data-unidade="<?= htmlspecialchars($mp['unidade_medida']) ?>">
+                                    <?= htmlspecialchars($mp['nome']) ?> (Estoque: <?= number_format($mp['estoque_atual'], 2, ',', '.') ?> <?= $mp['unidade_medida'] ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="quantidade_real_utilizada" class="form-label">Qtd. Real Gasta</label>
+                    <input type="number" step="0.0001" min="0" id="quantidade_real_utilizada" name="quantidade_real_utilizada" class="form-control" placeholder="Ex: 15.5">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="unidade_medida" class="form-label">Unidade</label>
+                    <input type="text" id="unidade_medida" name="unidade_medida" class="form-control" placeholder="Ex: KG, M">
+                </div>
+            </div>
+        </div>
+
         <div class="form-row">
             <div class="form-group" style="width: 100%;">
                 <label for="responsavel" class="form-label">Responsável pelo Enfesto/Corte *</label>
@@ -52,6 +80,14 @@
             </div>
         </div>
 
+        <!-- Opção de Finalização do Corte da OP -->
+        <div class="form-group" style="margin-top: 15px; margin-bottom: 20px; background: #eff6ff; padding: 12px 16px; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; font-weight: 600; color: #1e40af;">
+                <input type="checkbox" name="finalizar_corte" value="1" checked style="transform: scale(1.3); cursor: pointer;">
+                Finalizar Etapa de Corte deste Lote (Liberar para Facção / Chão de Fábrica mesmo se cortado menos que a estimativa)
+            </label>
+        </div>
+
         <div class="form-actions">
             <a href="/corte" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Salvar Lançamento</button>
@@ -59,13 +95,27 @@
     </form>
 </div>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const selectOp = document.getElementById('ordem_producao_id');
         const secaoVariantes = document.getElementById('secao-variantes-corte');
         const tbodyVariantes = document.getElementById('variantes-corte-tbody');
 
+        const selectMp = document.getElementById('materia_prima_id');
+        const inputUnidade = document.getElementById('unidade_medida');
+
+        if (selectMp && inputUnidade) {
+            selectMp.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                if (opt && opt.getAttribute('data-unidade')) {
+                    inputUnidade.value = opt.getAttribute('data-unidade');
+                }
+            });
+        }
+
         selectOp.addEventListener('change', function() {
+
             const selectedOpt = selectOp.options[selectOp.selectedIndex];
             tbodyVariantes.innerHTML = '';
             

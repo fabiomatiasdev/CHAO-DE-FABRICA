@@ -89,7 +89,13 @@ class OrdemProducaoController extends Controller
             ['tenant_id' => $tenantId]
         );
 
+        $locaisEstoque = Database::fetchAll(
+            "SELECT id, nome, tipo FROM locais_estoque WHERE tenant_id = :tenant_id AND status = 'ativo' ORDER BY nome ASC",
+            ['tenant_id' => $tenantId]
+        );
+
         // Pedidos pendentes de venda para vincular
+
         $pedidos = Database::fetchAll(
             "SELECT pv.id, pv.cliente, pv.quantidade, pv.tamanho, pm.referencia 
              FROM pedidos_venda pv
@@ -138,7 +144,9 @@ class OrdemProducaoController extends Controller
             'op' => null,
             'modelos' => $modelos,
             'oficinas' => $oficinas,
+            'locaisEstoque' => $locaisEstoque,
             'pedidos' => $pedidos,
+
             'fichasModelos' => $fichasModelos,
             'variantes' => $variantes,
             'opVariantesSelected' => [],
@@ -163,6 +171,7 @@ class OrdemProducaoController extends Controller
         $variante_quantidades = $_POST['variante_quantidades'] ?? [];
         
         $oficina_faccao_id = !empty($_POST['oficina_faccao_id']) ? (int)$_POST['oficina_faccao_id'] : null;
+        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int)$_POST['local_estoque_id'] : null;
         $operadores = (int)($_POST['operadores'] ?? 1);
         $prazo = $_POST['prazo'] ?? '';
         $status = $_POST['status'] ?? 'aberta';
@@ -195,8 +204,8 @@ class OrdemProducaoController extends Controller
 
             // 1. Inserir OP
             $stmt = $db->prepare(
-                "INSERT INTO ordens_producao (tenant_id, pedido_venda_id, produto_modelo_id, produto_variante_id, oficina_faccao_id, quantidade, operadores, prazo, status) 
-                  VALUES (:tenant_id, :pedido_venda_id, :produto_modelo_id, :produto_variante_id, :oficina_faccao_id, :quantidade, :operadores, :prazo, :status)"
+                "INSERT INTO ordens_producao (tenant_id, pedido_venda_id, produto_modelo_id, produto_variante_id, oficina_faccao_id, local_estoque_id, quantidade, operadores, prazo, status) 
+                  VALUES (:tenant_id, :pedido_venda_id, :produto_modelo_id, :produto_variante_id, :oficina_faccao_id, :local_estoque_id, :quantidade, :operadores, :prazo, :status)"
             );
             $stmt->execute([
                 'tenant_id' => $tenantId,
@@ -204,11 +213,13 @@ class OrdemProducaoController extends Controller
                 'produto_modelo_id' => $produto_modelo_id,
                 'produto_variante_id' => $produto_variante_id,
                 'oficina_faccao_id' => $oficina_faccao_id,
+                'local_estoque_id' => $local_estoque_id,
                 'quantidade' => $quantidade,
                 'operadores' => $operadores,
                 'prazo' => $prazo,
                 'status' => $status
             ]);
+
             $opId = $db->lastInsertId();
 
             // 1.2 Inserir na tabela pivot ordens_producao_variantes

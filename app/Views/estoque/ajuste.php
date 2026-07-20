@@ -26,6 +26,21 @@
                 <span id="estoque-atual-helper" style="font-size: 11px; color: var(--muted); display: block; margin-top: 4px;">Estoque atual: -</span>
             </div>
 
+            <!-- Local de Estoque (Armazenador) -->
+            <div class="form-group">
+                <label for="local_estoque_id" class="form-label">Local de Armazenamento (Estoque)</label>
+                <select id="local_estoque_id" name="local_estoque_id" class="form-control">
+                    <option value="">-- Selecione o Local de Estoque --</option>
+                    <?php if (!empty($locaisEstoque)): ?>
+                        <?php foreach ($locaisEstoque as $loc): ?>
+                            <option value="<?= $loc['id'] ?>">
+                                <?= htmlspecialchars($loc['nome']) ?> (<?= ucfirst($loc['tipo']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="tipo_movimentacao" class="form-label">Movimentação *</label>
@@ -61,6 +76,7 @@
                 <thead>
                     <tr>
                         <th>Item</th>
+                        <th>Local</th>
                         <th>Tipo Item</th>
                         <th>Qtd. Ajustada</th>
                         <th>Operação</th>
@@ -68,10 +84,12 @@
                         <th>Data/Hora</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <?php if (empty($ajustes)): ?>
                         <tr>
-                            <td colspan="6" class="empty-state">
+                            <td colspan="7" class="empty-state">
+
                                 Nenhuma movimentação registrada.
                             </td>
                         </tr>
@@ -79,7 +97,9 @@
                         <?php foreach ($ajustes as $aj): ?>
                             <tr>
                                 <td><strong style="color: #334155;"><?= htmlspecialchars($aj['item_nome']) ?></strong></td>
+                                <td><span class="badge" style="background:#e2e8f0; color:#334155; font-size:11px;"><?= htmlspecialchars($aj['local_nome'] ?? 'Geral') ?></span></td>
                                 <td>
+
                                     <?php if ($aj['tipo_item'] === 'materia_prima'): ?>
                                         <span class="badge badge-secondary">Matéria-Prima</span>
                                     <?php else: ?>

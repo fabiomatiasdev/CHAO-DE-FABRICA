@@ -230,8 +230,8 @@ class ChaoFabricaController extends Controller
                 }
             }
 
-            // 2. Se a etapa foi marcada como "conclúido", desbloquear a próxima etapa produtiva para as mesmas variações
-            if ($status === 'conclúido') {
+            // 2. Se a etapa foi marcada como "concluído" ou "conclúido"
+            if ($status === 'conclúido' || $status === 'concluído') {
                 $proximaEtapa = null;
                 if ($etapa === 'corte')
                     $proximaEtapa = 'costura';
@@ -275,30 +275,104 @@ class ChaoFabricaController extends Controller
                     // Se concluiu a última etapa ('embalagem'), verificar se todas as variações da OP foram concluídas
                     $etapasIncompletas = Database::fetch(
                         "SELECT COUNT(*) as total FROM chao_fabrica_etapas 
-                         WHERE ordem_producao_id = :op_id AND etapa = 'embalagem' AND status != 'conclúido'",
+                         WHERE ordem_producao_id = :op_id AND etapa = 'embalagem' AND status NOT IN ('conclúido', 'concluído')",
                         ['op_id' => $opId]
                     )['total'] ?? 0;
 
                     if ($etapasIncompletas == 0) {
-                        // Marcar a OP principal como "concluída"
-                        $db->prepare(
-                            "UPDATE ordens_producao 
-                             SET status = 'concluída' 
-                             WHERE tenant_id = :tenant_id AND id = :op_id"
-                        )->execute([
-                            'tenant_id' => $tenantId,
-                            'op_id' => $opId
-                        ]);
+                        // 1. Obter dados da OP
+                        $opData = Database::fetch(
+                            "SELECT * FROM ordens_producao WHERE id = :id AND tenant_id = :tenant_id",
+                            ['id' => $opId, 'tenant_id' => $tenantId]
+                        );
 
-                        // Se tiver pedido de venda vinculado, marcar pedido como entregue
-                        $op = Database::fetch("SELECT pedido_venda_id FROM ordens_producao WHERE id = :id", ['id' => $opId]);
-                        if ($op && $op['pedido_venda_id']) {
-                            $db->prepare("UPDATE pedidos_venda SET status = 'entregue' WHERE id = :pedido_id")
-                                ->execute(['pedido_id' => $op['pedido_venda_id']]);
+                        if ($opData && $opData['status'] !== 'concluída') {
+                            // Marcar a OP principal como "concluída"
+                            $db->prepare(
+                                "UPDATE ordens_producao 
+                                 SET status = 'concluída' 
+                                 WHERE tenant_id = :tenant_id AND id = :op_id"
+                            )->execute([
+                                'tenant_id' => $tenantId,
+                                'op_id' => $opId
+                            ]);
+
+                            // 2. Apurar total de perdas registradas na facção ou controle de qualidade para a OP
+                            $perdasFaccao = (int)(Database::fetch(
+                                "SELECT SUM(quantidade_defeito_perda) as total FROM retornos_faccao WHERE ordem_producao_id = :op_id AND tenant_id = :tenant_id",
+                                ['op_id' => $opId, 'tenant_id' => $tenantId]
+                            )['total'] ?? 0);
+
+                            $perdasQualidade = (int)(Database::fetch(
+                                "SELECT SUM(quantidade_reprovada) as total FROM controle_qualidade WHERE ordem_producao_id = :op_id AND tenant_id = :tenant_id",
+                                ['op_id' => $opId, 'tenant_id' => $tenantId]
+                            )['total'] ?? 0);
+
+                            $totalPerdas = max($perdasFaccao, $perdasQualidade);
+
+                            // 3. Apurar variações da OP e creditar estoque de produtos acabados descontando perdas
+                            $opVariantes = Database::fetchAll(
+                                "SELECT opv.produto_variante_id, opv.quantidade 
+                                 FROM ordens_producao_variantes opv
+                                 WHERE opv.ordem_producao_id = :op_id AND opv.tenant_id = :tenant_id",
+                                ['op_id' => $opId, 'tenant_id' => $tenantId]
+                            );
+
+                            if (empty($opVariantes) && $opData['produto_variante_id']) {
+                                $opVariantes = [[
+                                    'produto_variante_id' => $opData['produto_variante_id'],
+                                    'quantidade' => $opData['quantidade']
+                                ]];
+                            }
+
+                            $totalQtdOP = array_sum(array_column($opVariantes, 'quantidade')) ?: $opData['quantidade'];
+
+                            foreach ($opVariantes as $v) {
+                                $varId = $v['produto_variante_id'];
+                                $qtdBase = $v['quantidade'];
+                                
+                                // Proporcionalizar perdas se houver variação
+                                $proporcao = $totalQtdOP > 0 ? ($qtdBase / $totalQtdOP) : 1;
+                                $perdaVar = (int)round($totalPerdas * $proporcao);
+                                $qtdBoaFinal = max(0, $qtdBase - $perdaVar);
+
+                                if ($varId && $qtdBoaFinal > 0) {
+                                    // Creditar na tabela produtos_variantes
+                                    $db->prepare(
+                                        "UPDATE produtos_variantes 
+                                         SET estoque_atual = estoque_atual + :qtd 
+                                         WHERE id = :var_id AND tenant_id = :tenant_id"
+                                    )->execute([
+                                        'qtd' => $qtdBoaFinal,
+                                        'var_id' => $varId,
+                                        'tenant_id' => $tenantId
+                                    ]);
+
+                                    // Gravar em movimentação de estoque
+                                    $db->prepare(
+                                        "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id, local_estoque_id) 
+                                         VALUES (:tenant_id, 'produto_acabado', :item_id, :qtd, 'entrada', :motivo, :user_id, :local_id)"
+                                    )->execute([
+                                        'tenant_id' => $tenantId,
+                                        'item_id' => $varId,
+                                        'qtd' => $qtdBoaFinal,
+                                        'motivo' => "Entrada de Produção Finalizada OP #{$opId} (Descontado {$perdaVar} perdas)",
+                                        'user_id' => $_SESSION['user_id'] ?? null,
+                                        'local_id' => $opData['local_estoque_id'] ?? null
+                                    ]);
+                                }
+                            }
+
+                            // 4. Se tiver pedido de venda vinculado, marcar pedido como entregue
+                            if ($opData['pedido_venda_id']) {
+                                $db->prepare("UPDATE pedidos_venda SET status = 'entregue' WHERE id = :pedido_id")
+                                    ->execute(['pedido_id' => $opData['pedido_venda_id']]);
+                            }
                         }
                     }
                 }
             }
+
 
             // 3. Garantir que a OP principal está como "em andamento" caso não esteja concluída/aberta
             if ($status === 'em andamento') {

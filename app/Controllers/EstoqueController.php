@@ -12,6 +12,14 @@ class EstoqueController extends Controller
      */
     public function index(): void
     {
+        $this->ajuste();
+    }
+
+    /**
+     * Tela de ajuste de estoque (Insumos e Produtos Acabados por Local).
+     */
+    public function ajuste(): void
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -20,18 +28,19 @@ class EstoqueController extends Controller
 
         // Buscar histórico de ajustes
         $ajustes = Database::fetchAll(
-            "SELECT em.*, u.nome as usuario_nome,
+            "SELECT em.*, u.nome as usuario_nome, le.nome as local_nome,
                     COALESCE(mp.nome, pm.nome) as item_nome
              FROM estoque_movimentacoes em
              LEFT JOIN users u ON em.usuario_id = u.id
+             LEFT JOIN locais_estoque le ON em.local_estoque_id = le.id
              LEFT JOIN materias_primas mp ON em.tipo_item = 'materia_prima' AND em.item_id = mp.id
              LEFT JOIN produtos_modelos pm ON em.tipo_item = 'produto_acabado' AND em.item_id = pm.id
              WHERE em.tenant_id = :tenant_id
-             ORDER BY em.id DESC LIMIT 40",
+             ORDER BY em.id DESC LIMIT 50",
             ['tenant_id' => $tenantId]
         );
 
-        // Carregar opções de matérias-primas e produtos acabados para o select box
+        // Carregar matérias-primas e produtos acabados
         $materias = Database::fetchAll(
             "SELECT id, nome, unidade_medida, estoque_atual FROM materias_primas WHERE tenant_id = :tenant_id ORDER BY nome ASC",
             ['tenant_id' => $tenantId]
@@ -42,7 +51,7 @@ class EstoqueController extends Controller
             ['tenant_id' => $tenantId]
         );
 
-        // Adicionar saldo calculado do estoque para cada produto acabado para exibir na listagem
+        // Saldo calculado para produtos acabados
         foreach ($produtos as &$prod) {
             $saldo = Database::fetch(
                 "SELECT SUM(CASE WHEN tipo_movimentacao = 'entrada' THEN quantidade ELSE -quantidade END) as total 
@@ -53,19 +62,34 @@ class EstoqueController extends Controller
             $prod['estoque_atual'] = $saldo;
         }
 
+        // Carregar locais de estoque (armazenadores)
+        $locaisEstoque = Database::fetchAll(
+            "SELECT * FROM locais_estoque WHERE tenant_id = :tenant_id AND status = 'ativo' ORDER BY nome ASC",
+            ['tenant_id' => $tenantId]
+        );
+
         $this->render('estoque/ajuste', [
-            'title' => 'Ajuste de Estoque',
-            'subtitle' => 'Realize entradas e saídas manuais e acompanhe as movimentações de inventário',
+            'title' => 'Ajuste de Estoque (Insumos e Acabados)',
+            'subtitle' => 'Realize entradas e saídas manuais selecionando o local de armazenamento',
             'ajustes' => $ajustes,
             'materias' => $materias,
-            'produtos' => $produtos
+            'produtos' => $produtos,
+            'locaisEstoque' => $locaisEstoque
         ]);
     }
 
     /**
-     * Processar ajuste manual de estoque.
+     * Alias para processar ajuste.
      */
     public function ajustar(): void
+    {
+        $this->processarAjuste();
+    }
+
+    /**
+     * Processar ajuste manual de estoque com local de armazenagem.
+     */
+    public function processarAjuste(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -76,6 +100,7 @@ class EstoqueController extends Controller
 
         $tipo_item = $_POST['tipo_item'] ?? '';
         $item_id = (int)($_POST['item_id'] ?? 0);
+        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int)$_POST['local_estoque_id'] : null;
         $quantidade = (float)($_POST['quantidade'] ?? 0.00);
         $tipo_movimentacao = $_POST['tipo_movimentacao'] ?? '';
         $motivo = trim($_POST['motivo'] ?? '');
@@ -91,8 +116,8 @@ class EstoqueController extends Controller
 
             // 1. Gravar a movimentação de estoque
             $stmt = $db->prepare(
-                "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id) 
-                 VALUES (:tenant_id, :tipo_item, :item_id, :quantidade, :tipo_movimentacao, :motivo, :usuario_id)"
+                "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id, local_estoque_id) 
+                 VALUES (:tenant_id, :tipo_item, :item_id, :quantidade, :tipo_movimentacao, :motivo, :usuario_id, :local_id)"
             );
             $stmt->execute([
                 'tenant_id' => $tenantId,
@@ -101,7 +126,8 @@ class EstoqueController extends Controller
                 'quantidade' => $quantidade,
                 'tipo_movimentacao' => $tipo_movimentacao,
                 'motivo' => $motivo,
-                'usuario_id' => $userId
+                'usuario_id' => $userId,
+                'local_id' => $local_estoque_id
             ]);
 
             // 2. Se for matéria-prima, atualizar fisicamente o estoque na tabela materias_primas

@@ -129,14 +129,21 @@ $router->get('/corte/excluir', [App\Controllers\OrdemCorteController::class, 'de
 $router->get('/chao-fabrica', [App\Controllers\ChaoFabricaController::class, 'index'], [AuthMiddleware::class]);
 $router->post('/chao-fabrica/apontar', [App\Controllers\ChaoFabricaController::class, 'apontar'], [AuthMiddleware::class]);
 
-// PCP - Retornos de Facção
+// PCP - Retornos e Envios para Facção
 $router->get('/retornos', [App\Controllers\RetornoFaccaoController::class, 'index'], [AuthMiddleware::class]);
+$router->get('/retornos/envio', [App\Controllers\RetornoFaccaoController::class, 'envioForm'], [AuthMiddleware::class]);
+$router->post('/retornos/envio', [App\Controllers\RetornoFaccaoController::class, 'storeEnvio'], [AuthMiddleware::class]);
 $router->get('/retornos/novo', [App\Controllers\RetornoFaccaoController::class, 'create'], [AuthMiddleware::class]);
 $router->post('/retornos/novo', [App\Controllers\RetornoFaccaoController::class, 'store'], [AuthMiddleware::class]);
 
-// Estoque - Ajuste
-$router->get('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'index'], [AuthMiddleware::class]);
-$router->post('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'ajustar'], [AuthMiddleware::class]);
+
+// Estoque - Ajuste e Locais
+$router->get('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'ajuste'], [AuthMiddleware::class]);
+$router->post('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'processarAjuste'], [AuthMiddleware::class]);
+$router->get('/estoque/locais', [App\Controllers\EstoqueLocalController::class, 'index'], [AuthMiddleware::class]);
+$router->post('/estoque/locais/novo', [App\Controllers\EstoqueLocalController::class, 'store'], [AuthMiddleware::class]);
+$router->post('/estoque/locais/editar', [App\Controllers\EstoqueLocalController::class, 'update'], [AuthMiddleware::class]);
+$router->get('/estoque/locais/excluir', [App\Controllers\EstoqueLocalController::class, 'delete'], [AuthMiddleware::class]);
 
 // Estoque de Produtos Acabados (Variantes)
 $router->get('/produtos/estoque', [App\Controllers\ProdutoModeloController::class, 'estoque'], [AuthMiddleware::class]);
