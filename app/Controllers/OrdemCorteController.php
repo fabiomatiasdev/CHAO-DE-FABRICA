@@ -228,7 +228,7 @@ class OrdemCorteController extends Controller
             if ($materia_prima_id && $quantidade_real_utilizada > 0) {
                 $db->prepare(
                     "UPDATE materias_primas 
-                     SET estoque_atual = MAX(0, estoque_atual - :qtd) 
+                     SET estoque_atual = GREATEST(0, estoque_atual - :qtd) 
                      WHERE id = :mp_id AND tenant_id = :tenant_id"
                 )->execute([
                     'qtd' => $quantidade_real_utilizada,
