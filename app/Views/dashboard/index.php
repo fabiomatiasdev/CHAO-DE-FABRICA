@@ -129,6 +129,12 @@
         </div>
         <div class="table-responsive">
             <table class="table-custom">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 18%;">
+                    <col style="width: 22%;">
+                    <col style="width: 25%;">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Item</th>
@@ -159,8 +165,8 @@
                                         <span class="badge badge-danger" style="font-weight: 700;">- SAÍDA</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <div style="font-size:12px; font-weight:600;"><?= htmlspecialchars($mov['motivo']) ?></div>
+                                <td style="white-space: normal; max-width: 0;">
+                                    <div style="font-size:12px; font-weight:600; white-space: normal; word-break: break-word;"><?= htmlspecialchars($mov['motivo']) ?></div>
                                     <div style="font-size:11px; color: var(--muted);"><?= htmlspecialchars($mov['usuario_nome'] ?? 'Sistema') ?></div>
                                 </td>
                             </tr>
