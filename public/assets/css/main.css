@@ -52,7 +52,6 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
 }
 
 /* ==========================================================================
@@ -271,6 +270,8 @@ textarea.form-control {
 .app-wrapper {
     display: flex;
     min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 /* Impersonation Banner */
@@ -420,12 +421,14 @@ textarea.form-control {
 .main-content {
     flex: 1;
     min-width: 0;
+    width: calc(100vw - var(--sidebar-width));
     max-width: calc(100vw - var(--sidebar-width));
     margin-left: var(--sidebar-width);
     padding: 24px 30px;
     background-color: var(--background);
     min-height: 100vh;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 
@@ -629,6 +632,7 @@ textarea.form-control {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
 }
 
