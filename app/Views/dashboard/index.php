@@ -69,7 +69,8 @@
 </div>
 
 <!-- Linha 3: OPs Recentes vs Movimentações de Estoque -->
-<div class="layout-split">
+<div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 24px;">
+<div class="layout-split" style="margin-bottom: 0; min-width: 700px;">
     <!-- Bloco 1: Ordens de Produção Recentes -->
     <div class="card-box">
         <div class="card-title-box">
@@ -176,6 +177,7 @@
             </table>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Linha 4: Tabela Full Width de Produção por Período -->
