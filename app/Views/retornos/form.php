@@ -1,9 +1,9 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<div class="card-box" style="max-width: 800px; margin: 0 auto;">
-    <div class="card-title-box" style="display:flex; justify-content:space-between; align-items:center;">
+<div class="card-box" style="max-width: 760px; margin: 0 auto;">
+    <div class="card-title-box">
         <h3>Lançar Retorno de Oficina / Facção</h3>
-        <a href="/retornos" class="btn btn-secondary btn-sm">Voltar</a>
+        <a href="/retornos" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Voltar</a>
     </div>
 
     <form action="<?= $action ?>" method="POST">
@@ -39,51 +39,51 @@
         </div>
 
         <div class="form-row">
-            <div class="form-group" style="flex:1;">
+            <div class="form-group">
                 <label for="quantidade_enviada" class="form-label">Qtd. Enviada no Lote</label>
-                <input type="number" id="quantidade_enviada" name="quantidade_enviada" class="form-control" placeholder="0" readonly style="background:#f1f5f9; font-weight:bold;">
+                <input type="number" id="quantidade_enviada" name="quantidade_enviada" class="form-control" placeholder="0" readonly style="background-color:#f1f5f9; font-weight:bold; cursor:not-allowed;">
             </div>
 
-            <div class="form-group" style="flex:1;">
+            <div class="form-group">
                 <label for="quantidade_retornada_boa" class="form-label">Qtd. Retornada BOA *</label>
                 <input type="number" min="0" id="quantidade_retornada_boa" name="quantidade_retornada_boa" class="form-control" placeholder="Ex: 48" required>
             </div>
 
-            <div class="form-group" style="flex:1;">
+            <div class="form-group">
                 <label for="quantidade_defeito_perda" class="form-label">Qtd. Perda / Defeito *</label>
                 <input type="number" min="0" id="quantidade_defeito_perda" name="quantidade_defeito_perda" class="form-control" value="0" placeholder="Ex: 2" required>
             </div>
         </div>
 
         <!-- Motivo / Detalhamento do Defeito -->
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group">
             <label for="motivo_defeito" class="form-label">Detalhamento das Perdas / Defeitos (Qualidade)</label>
-            <input type="text" id="motivo_defeito" name="motivo_defeito" class="form-control" placeholder="Ex: 2 peças com costura torta / furo no tecido">
+            <input type="text" id="motivo_defeito" name="motivo_defeito" class="form-control" placeholder="Ex: 2 peças com costura torta / mancha de óleo">
         </div>
 
         <!-- Etapas Concluídas pela Facção -->
         <div style="margin-top: 20px; margin-bottom: 25px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background-color: #f8fafc;">
-            <h4 style="margin:0 0 10px 0; font-size:14px; font-weight:600; color:#334155;">Etapas Realizadas nesta Facção *</h4>
-            <p style="margin:0 0 12px 0; font-size:12px; color:#64748b;">Marque quais funções a facção executou. As etapas não marcadas retornarão ao Chão de Fábrica interno para finalização.</p>
+            <h4 style="margin:0 0 6px 0; font-size:13px; font-weight:600; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Etapas Executadas nesta Oficina *</h4>
+            <p style="margin:0 0 12px 0; font-size:12px; color:var(--muted);">Marque quais funções a facção executou. As etapas não marcadas retornarão para serem finalizadas no Chão de Fábrica interno.</p>
             
             <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" name="etapas_concluidas[]" value="costura" checked style="transform:scale(1.2);"> Costura
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                    <input type="checkbox" name="etapas_concluidas[]" value="costura" checked style="transform:scale(1.2); cursor:pointer;"> Costura
                 </label>
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" name="etapas_concluidas[]" value="acabamento" style="transform:scale(1.2);"> Acabamento / Arremate
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                    <input type="checkbox" name="etapas_concluidas[]" value="acabamento" style="transform:scale(1.2); cursor:pointer;"> Acabamento / Arremate
                 </label>
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" name="etapas_concluidas[]" value="revisão" style="transform:scale(1.2);"> Revisão / Passar
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                    <input type="checkbox" name="etapas_concluidas[]" value="revisão" style="transform:scale(1.2); cursor:pointer;"> Revisão / Passar
                 </label>
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" name="etapas_concluidas[]" value="embalagem" style="transform:scale(1.2);"> Embalagem
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:500;">
+                    <input type="checkbox" name="etapas_concluidas[]" value="embalagem" style="transform:scale(1.2); cursor:pointer;"> Embalagem
                 </label>
             </div>
         </div>
 
         <div class="form-row">
-            <div class="form-group" style="flex:1;">
+            <div class="form-group">
                 <label for="data_retorno" class="form-label">Data do Retorno *</label>
                 <input type="date" id="data_retorno" name="data_retorno" class="form-control" value="<?= date('Y-m-d') ?>" required>
             </div>
@@ -91,7 +91,7 @@
 
         <div class="form-actions">
             <a href="/retornos" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Salvar Retorno e Atualizar Chão de Fábrica</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Salvar Retorno e Atualizar PCP</button>
         </div>
     </form>
 </div>
