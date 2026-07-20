@@ -75,7 +75,7 @@
                             <th style="width: 110px;">Tempo 1 (MM:SS) *</th>
                             <th style="width: 110px;">Tempo 2 (MM:SS) *</th>
                             <th style="width: 110px;">Tempo 3 (MM:SS) *</th>
-                            <th style="width: 110px;">Média (min)</th>
+                            <th style="width: 110px;">Média (MM:SS)</th>
                             <th>Observações</th>
                             <th style="width: 50px; text-align: center;">Ação</th>
                         </tr>
@@ -92,8 +92,8 @@
                                     style="text-align:center;"></td>
                             <td><input type="text" class="form-control op-tempo3" placeholder="00:00" maxlength="5"
                                     style="text-align:center;"></td>
-                            <td><input type="number" class="form-control op-media" readonly placeholder="0.00"
-                                    style="background-color: #f1f5f9; font-weight: bold;"></td>
+                            <td><input type="text" class="form-control op-media" readonly placeholder="00:00"
+                                    style="background-color: #f1f5f9; font-weight: bold; text-align:center;"></td>
                             <td><input type="text" class="form-control op-observacoes" placeholder="Obs"></td>
                             <td style="text-align: center;"><button type="button" class="btn-remove-operacao"
                                     style="border:none; background:none; color:var(--danger); cursor:pointer;"><i
@@ -102,15 +102,14 @@
 
                         <!-- Operações Ativas -->
                         <?php
-                        function decToMMSS(float $min): string
-                        {
-                            $m = (int) floor($min);
-                            $s = (int) round(($min - $m) * 60);
-                            if ($s >= 60) {
-                                $m++;
-                                $s = 0;
+                        if (!function_exists('decToMMSS')) {
+                            function decToMMSS(float $min): string
+                            {
+                                $totalSec = (int) round($min * 60);
+                                $m = (int) floor($totalSec / 60);
+                                $s = $totalSec % 60;
+                                return sprintf('%02d:%02d', $m, $s);
                             }
-                            return sprintf('%02d:%02d', $m, $s);
                         }
                         ?>
                         <?php if (!empty($operacoes)): ?>
@@ -131,9 +130,9 @@
                                     <td><input type="text" name="op_tempo3[]" class="form-control op-tempo3"
                                             value="<?= (float) ($opItem['tempo_3'] ?? 0) == 0 ? '' : decToMMSS((float) $opItem['tempo_3']) ?>"
                                             placeholder="00:00" maxlength="5" style="text-align:center;" required></td>
-                                    <td><input type="number" class="form-control op-media"
-                                            value="<?= (float) ($opItem['media'] ?? 0) == 0 ? '' : number_format((float) $opItem['media'], 2, '.', '') ?>"
-                                            readonly placeholder="0.00" style="background-color: #f1f5f9; font-weight: bold;">
+                                    <td><input type="text" class="form-control op-media"
+                                            value="<?= (float) ($opItem['media'] ?? 0) == 0 ? '' : decToMMSS((float) $opItem['media']) ?>"
+                                            readonly placeholder="00:00" style="background-color: #f1f5f9; font-weight: bold; text-align:center;">
                                     </td>
                                     <td><input type="text" name="op_observacoes[]" class="form-control op-observacoes"
                                             value="<?= htmlspecialchars($opItem['observacoes'] ?? '') ?>" placeholder="Obs">
@@ -426,44 +425,76 @@
         rowsOps.forEach(row => setupRowEventsOp(row));
         recalcularCronometragem();
 
-        // Converte "MM:SS" para minutos decimais
-        function parseTime(str) {
-            str = (str || '').trim();
-            if (str.includes(':')) {
-                const parts = str.split(':');
-                const m = parseInt(parts[0]) || 0;
-                const s = parseInt(parts[1]) || 0;
-                return m + s / 60;
-            }
-            return parseFloat(str) || 0;
+        // Converte minutos decimais para string MM:SS
+        function formatMMSS(minutos) {
+            if (!minutos || isNaN(minutos) || minutos <= 0) return '00:00';
+            const totalSec = Math.round(minutos * 60);
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         }
 
-        // Aplica máscara automática MM:SS ao digitar
+        // Converte "MM:SS" ou segundos brutos para minutos decimais (com ajuste de segundos >= 60)
+        function parseTime(str) {
+            str = (str || '').trim();
+            if (!str) return 0;
+            let m = 0, s = 0;
+            if (str.includes(':')) {
+                const parts = str.split(':');
+                m = parseInt(parts[0], 10) || 0;
+                s = parseInt(parts[1], 10) || 0;
+            } else {
+                let num = parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
+                if (num <= 0) return 0;
+                if (num < 100) {
+                    s = num;
+                } else {
+                    m = Math.floor(num / 100);
+                    s = num % 100;
+                }
+            }
+            if (s >= 60) {
+                m += Math.floor(s / 60);
+                s = s % 60;
+            }
+            return m + (s / 60);
+        }
+
+        // Normaliza e formata o campo no evento blur (ex: transforma 00:80 em 01:20)
+        function normalizeTimeField(input) {
+            const minDec = parseTime(input.value);
+            if (minDec > 0) {
+                input.value = formatMMSS(minDec);
+            } else if (input.value.trim() !== '') {
+                input.value = '00:00';
+            }
+        }
+
+        // Aplica máscara automática MM:SS e normalização de segundos ao digitar e ao sair
         function applyTimeMask(input) {
             input.addEventListener('input', function () {
                 let v = this.value.replace(/[^0-9]/g, '');
                 if (v.length > 4) v = v.slice(0, 4);
                 if (v.length > 2) v = v.slice(0, 2) + ':' + v.slice(2);
                 this.value = v;
+                recalcularCronometragem();
+            });
+            input.addEventListener('blur', function () {
+                normalizeTimeField(this);
+                recalcularCronometragem();
+            });
+            input.addEventListener('change', function () {
+                normalizeTimeField(this);
+                recalcularCronometragem();
             });
         }
 
         function setupRowEventsOp(row) {
             const inputsTempo = row.querySelectorAll('.op-tempo1, .op-tempo2, .op-tempo3');
-            const inputMedia = row.querySelector('.op-media');
             const btnRemove = row.querySelector('.btn-remove-operacao');
 
             inputsTempo.forEach(input => {
                 applyTimeMask(input);
-                input.addEventListener('input', function () {
-                    const t1 = parseTime(row.querySelector('.op-tempo1').value);
-                    const t2 = parseTime(row.querySelector('.op-tempo2').value);
-                    const t3 = parseTime(row.querySelector('.op-tempo3').value);
-
-                    const media = (t1 + t2 + t3) / 3;
-                    inputMedia.value = media.toFixed(2);
-                    recalcularCronometragem();
-                });
             });
 
             btnRemove.addEventListener('click', function () {
@@ -487,7 +518,7 @@
 
             if (rows.length === 0) {
                 inputTempoPadrao.value = '0.00';
-                labelTempoObservado.textContent = '0,00 min';
+                labelTempoObservado.textContent = '00:00 (0,00 min)';
                 labelTempoAcrescido.textContent = '0,00 min';
                 labelTempoPadraoCalculado.textContent = '0,00 min';
                 return;
@@ -495,12 +526,24 @@
 
             let tempoObservado = 0;
             rows.forEach(row => {
-                const t1 = parseTime(row.querySelector('.op-tempo1').value);
-                const t2 = parseTime(row.querySelector('.op-tempo2').value);
-                const t3 = parseTime(row.querySelector('.op-tempo3').value);
-                const media = (t1 + t2 + t3) / 3;
+                const t1Input = row.querySelector('.op-tempo1');
+                const t2Input = row.querySelector('.op-tempo2');
+                const t3Input = row.querySelector('.op-tempo3');
+                const mediaInput = row.querySelector('.op-media');
 
-                row.querySelector('.op-media').value = media.toFixed(2);
+                const t1 = parseTime(t1Input.value);
+                const t2 = parseTime(t2Input.value);
+                const t3 = parseTime(t3Input.value);
+
+                let sum = 0;
+                let count = 0;
+                if (t1 > 0) { sum += t1; count++; }
+                if (t2 > 0) { sum += t2; count++; }
+                if (t3 > 0) { sum += t3; count++; }
+
+                const media = count > 0 ? (sum / count) : 0;
+
+                mediaInput.value = formatMMSS(media);
                 tempoObservado += media;
             });
 
@@ -515,7 +558,7 @@
             const tempoAcrescido = tempoObservado * (folgaTotal / 100);
             const tempoPadraoCalculado = tempoObservado + tempoAcrescido;
 
-            labelTempoObservado.textContent = tempoObservado.toFixed(2).replace('.', ',') + ' min';
+            labelTempoObservado.textContent = formatMMSS(tempoObservado) + ' (' + tempoObservado.toFixed(2).replace('.', ',') + ' min)';
             labelTempoAcrescido.textContent = tempoAcrescido.toFixed(2).replace('.', ',') + ' min';
             labelTempoPadraoCalculado.textContent = tempoPadraoCalculado.toFixed(2).replace('.', ',') + ' min';
 
