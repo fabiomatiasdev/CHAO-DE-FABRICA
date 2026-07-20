@@ -25,11 +25,13 @@ class PedidoVendaController extends Controller
                  FROM pedidos_venda pv
                  JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id
                  WHERE pv.tenant_id = :tenant_id 
-                   AND (pv.cliente LIKE :busca OR pm.nome LIKE :busca OR pm.referencia LIKE :busca)
+                   AND (pv.cliente LIKE :busca OR pm.nome LIKE :busca2 OR pm.referencia LIKE :busca3)
                  ORDER BY pv.id DESC",
                 [
                     'tenant_id' => $tenantId,
-                    'busca' => '%' . $busca . '%'
+                    'busca'     => '%' . $busca . '%',
+                    'busca2'    => '%' . $busca . '%',
+                    'busca3'    => '%' . $busca . '%',
                 ]
             );
         } else {

@@ -23,10 +23,10 @@
                     <th>Modelo de Produto</th>
                     <th>Origem / Pedido</th>
                     <th>Oficina / Facção</th>
-                    <th>Quantidade</th>
+                    <th class="text-right">Quantidade</th>
                     <th>Prazo Final</th>
-                    <th>Status</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +44,17 @@
                             <td>
                                 <strong style="color:var(--primary);"><?= htmlspecialchars($op['referencia']) ?></strong>
                                 <div style="font-size:12px; color:var(--muted);"><?= htmlspecialchars($op['modelo_nome']) ?></div>
+                                <?php if (!empty($op['variantes'])): ?>
+                                    <div style="font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
+                                        <?php foreach ($op['variantes'] as $v): ?>
+                                            <div>
+                                                <span class="badge badge-secondary" style="font-size: 10px; font-weight:normal; padding: 1px 4px;">
+                                                    <?= htmlspecialchars($v['cor']) ?> / <?= htmlspecialchars($v['tamanho']) ?>: <strong><?= $v['quantidade'] ?> pçs</strong>
+                                                </span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <?php if ($op['pedido_venda_id']): ?>
@@ -54,7 +65,7 @@
                                 <?php endif; ?>
                             </td>
                             <td><?= htmlspecialchars($op['oficina_nome'] ?: 'Não Definida') ?></td>
-                            <td><strong><?= number_format($op['quantidade'], 0, ',', '.') ?> pçs</strong></td>
+                            <td class="text-right"><strong><?= number_format($op['quantidade'], 0, ',', '.') ?> pçs</strong></td>
                             <td>
                                 <?php 
                                 $atrasado = strtotime($op['prazo']) < time() && $op['status'] !== 'concluída' && $op['status'] !== 'cancelada';
@@ -66,7 +77,7 @@
                                     <?php endif; ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <?php if ($op['status'] === 'aberta'): ?>
                                     <span class="badge badge-secondary">Aberta</span>
                                 <?php elseif ($op['status'] === 'em andamento'): ?>
@@ -77,13 +88,15 @@
                                     <span class="badge badge-danger">Cancelada</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align: right;" class="actions-cell">
-                                <a href="/ops/editar?id=<?= $op['id'] ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-                                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Editar
-                                </a>
-                                <a href="/ops/excluir?id=<?= $op['id'] ?>" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deseja realmente excluir esta OP?');">
-                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Excluir
-                                </a>
+                            <td class="text-right">
+                                <div class="actions-cell">
+                                    <a href="/ops/editar?id=<?= $op['id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="edit-2"></i> Editar
+                                    </a>
+                                    <a href="/ops/excluir?id=<?= $op['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deseja realmente excluir esta OP?');">
+                                        <i data-lucide="trash-2"></i> Excluir
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Superadmin - PCP Confecção</title>
+    <title>Painel Superadmin - C4 Smart</title>
     <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/zTGpC3HB/fav-icon-c4.png">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .super-header {
@@ -54,7 +55,8 @@
 
     <header class="super-header">
         <div class="super-logo">
-            <span>SA</span> PCP Confecção — Superadmin
+            <img src="https://i.ibb.co/WN0MpYZJ/c4-smart-2.png" alt="C4 Smart" style="max-height: 35px; object-fit: contain;">
+            <span style="font-size: 13px; background-color: var(--primary); padding: 2px 8px; border-radius: 4px; color: white;">Superadmin</span>
         </div>
         <nav class="super-nav">
             <a href="/superadmin" class="active">Visão Geral</a>

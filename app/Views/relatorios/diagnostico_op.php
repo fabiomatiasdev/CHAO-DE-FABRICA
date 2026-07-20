@@ -100,11 +100,25 @@
                         <div style="font-size:18px; font-weight:700; color:#334155; margin-top:4px;">
                             <?php 
                             $horas = floor($diagnostico['tempo_total'] / 60);
-                            $minutos = $diagnostico['tempo_total'] % 60;
+                            $minutos = round($diagnostico['tempo_total'] % 60);
                             echo "{$horas}h {$minutos}min";
                             ?>
                         </div>
-                        <span style="font-size:11px; color:var(--muted);">Baseado no tempo padrão da ficha técnica</span>
+                        <span style="font-size:11px; color:var(--muted);">Carga horária total acumulada do lote</span>
+                    </div>
+
+                    <div style="border-top:1px solid var(--border); padding-top:15px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;">Prazo Efetivo Estimado</span>
+                        <div style="font-size:18px; font-weight:700; color:var(--primary); margin-top:4px;">
+                            <?php 
+                            $tempoEfetivo = $diagnostico['tempo_efetivo'] ?? ($diagnostico['tempo_total'] / ($op['operadores'] ?: 1));
+                            $horasEf = floor($tempoEfetivo / 60);
+                            $minutosEf = round($tempoEfetivo % 60);
+                            $diasEf = number_format(($tempoEfetivo / 60) / 8, 1, ',', '.');
+                            echo "{$horasEf}h {$minutosEf}min <small style='font-size:11px; font-weight:normal; color:var(--muted);'> (~ {$diasEf} dias de 8h)</small>";
+                            ?>
+                        </div>
+                        <span style="font-size:11px; color:var(--muted);">Com <?= htmlspecialchars($op['operadores'] ?? 1) ?> operador(es) alocado(s) na OP</span>
                     </div>
 
                     <div style="border-top:1px solid var(--border); padding-top:15px;">
@@ -120,6 +134,7 @@
                         <div style="font-size:13px; color:#334155; margin-top:6px; display:flex; flex-direction:column; gap:5px;">
                             <div>Cor do Lote: <strong><?= htmlspecialchars($op['cor']) ?></strong></div>
                             <div>Oficina Responsável: <strong><?= htmlspecialchars($op['oficina_nome'] ?: 'Produção Interna') ?></strong></div>
+                            <div>Operadores Alocados: <strong><?= htmlspecialchars($op['operadores'] ?? 1) ?></strong></div>
                             <div>Data Prazo: <strong><?= date('d/m/Y', strtotime($op['prazo'])) ?></strong></div>
                         </div>
                     </div>

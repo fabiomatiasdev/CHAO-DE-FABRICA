@@ -5,11 +5,21 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+// Detecta automaticamente o caminho base
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    $basePath = __DIR__ . '/..'       // Local (pasta public/ separada)
+;
+} elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    $basePath = __DIR__;              // Produção (tudo em pcp/)
+} else {
+    die('vendor/autoload.php não encontrado. Faça o upload da pasta vendor/.');
+}
+
+require_once $basePath . '/vendor/autoload.php';
 
 // Carregar variáveis de ambiente do arquivo .env
-if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+if (file_exists($basePath . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
     $dotenv->load();
 }
 
@@ -113,6 +123,7 @@ $router->get('/ops/excluir', [App\Controllers\OrdemProducaoController::class, 'd
 $router->get('/corte', [App\Controllers\OrdemCorteController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/corte/novo', [App\Controllers\OrdemCorteController::class, 'create'], [AuthMiddleware::class]);
 $router->post('/corte/novo', [App\Controllers\OrdemCorteController::class, 'store'], [AuthMiddleware::class]);
+$router->get('/corte/excluir', [App\Controllers\OrdemCorteController::class, 'delete'], [AuthMiddleware::class]);
 
 // PCP - Chão de Fábrica
 $router->get('/chao-fabrica', [App\Controllers\ChaoFabricaController::class, 'index'], [AuthMiddleware::class]);
@@ -126,6 +137,10 @@ $router->post('/retornos/novo', [App\Controllers\RetornoFaccaoController::class,
 // Estoque - Ajuste
 $router->get('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'index'], [AuthMiddleware::class]);
 $router->post('/estoque/ajuste', [App\Controllers\EstoqueController::class, 'ajustar'], [AuthMiddleware::class]);
+
+// Estoque de Produtos Acabados (Variantes)
+$router->get('/produtos/estoque', [App\Controllers\ProdutoModeloController::class, 'estoque'], [AuthMiddleware::class]);
+$router->post('/produtos/estoque/ajuste', [App\Controllers\ProdutoModeloController::class, 'ajustarEstoque'], [AuthMiddleware::class]);
 
 // Relatórios
 $router->get('/relatorios/curva-abc', [App\Controllers\RelatorioController::class, 'curvaAbc'], [AuthMiddleware::class]);

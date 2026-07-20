@@ -23,11 +23,12 @@ class MateriaPrimaController extends Controller
             $itens = Database::fetchAll(
                 "SELECT * FROM materias_primas 
                  WHERE tenant_id = :tenant_id 
-                   AND (nome LIKE :busca OR fornecedor LIKE :busca)
+                   AND (nome LIKE :busca OR fornecedor LIKE :busca2)
                  ORDER BY id DESC",
                 [
                     'tenant_id' => $tenantId,
-                    'busca' => '%' . $busca . '%'
+                    'busca'     => '%' . $busca . '%',
+                    'busca2'    => '%' . $busca . '%',
                 ]
             );
         } else {

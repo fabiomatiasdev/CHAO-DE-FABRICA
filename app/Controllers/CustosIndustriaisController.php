@@ -145,10 +145,10 @@ class CustosIndustriaisController extends Controller
         $modelos = Database::fetchAll(
             "SELECT pm.*, ft.id as ficha_id, ft.tempo_padrao, ft.custo_mao_obra
              FROM produtos_modelos pm
-             LEFT JOIN fichas_tecnicas ft ON pm.id = ft.produto_modelo_id AND ft.tenant_id = :tenant_id
+             LEFT JOIN fichas_tecnicas ft ON pm.id = ft.produto_modelo_id AND ft.tenant_id = :tenant_id2
              WHERE pm.tenant_id = :tenant_id AND pm.status = 'ativo'
              ORDER BY pm.referencia ASC",
-            ['tenant_id' => $tenantId]
+            ['tenant_id' => $tenantId, 'tenant_id2' => $tenantId]
         );
 
         $apuracoes = [];

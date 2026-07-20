@@ -23,11 +23,13 @@ class OficinaFaccaoController extends Controller
             $oficinas = Database::fetchAll(
                 "SELECT * FROM oficinas_faccoes 
                  WHERE tenant_id = :tenant_id 
-                   AND (nome LIKE :busca OR cnpj_cpf LIKE :busca OR contato LIKE :busca)
+                   AND (nome LIKE :busca OR cnpj_cpf LIKE :busca2 OR contato LIKE :busca3)
                  ORDER BY id DESC",
                 [
                     'tenant_id' => $tenantId,
-                    'busca' => '%' . $busca . '%'
+                    'busca'     => '%' . $busca . '%',
+                    'busca2'    => '%' . $busca . '%',
+                    'busca3'    => '%' . $busca . '%',
                 ]
             );
         } else {

@@ -22,11 +22,11 @@
                     <th>Código</th>
                     <th>Cliente</th>
                     <th>Modelo de Produto</th>
-                    <th>Quantidade</th>
-                    <th>Tamanho</th>
+                    <th class="text-right">Quantidade</th>
+                    <th class="text-center">Tamanho</th>
                     <th>Prazo de Entrega</th>
-                    <th>Status</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,8 +46,8 @@
                                 <strong style="color:var(--primary);"><?= htmlspecialchars($p['referencia']) ?></strong>
                                 <div style="font-size: 12px; color: var(--muted);"><?= htmlspecialchars($p['modelo_nome']) ?></div>
                             </td>
-                            <td><?= number_format($p['quantidade'], 0, ',', '.') ?> pçs</td>
-                            <td><span style="background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight:600;"><?= htmlspecialchars($p['tamanho']) ?></span></td>
+                            <td class="text-right"><?= number_format($p['quantidade'], 0, ',', '.') ?> pçs</td>
+                            <td class="text-center"><span style="background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight:600;"><?= htmlspecialchars($p['tamanho']) ?></span></td>
                             <td>
                                 <?php 
                                 $atrasado = strtotime($p['prazo_entrega']) < time() && $p['status'] !== 'entregue';
@@ -59,7 +59,7 @@
                                     <?php endif; ?>
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <?php if ($p['status'] === 'pendente'): ?>
                                     <span class="badge badge-warning">Pendente</span>
                                 <?php elseif ($p['status'] === 'em produção'): ?>
@@ -68,13 +68,15 @@
                                     <span class="badge badge-success">Entregue</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align: right;" class="actions-cell">
-                                <a href="/pedidos/editar?id=<?= $p['id'] ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-                                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Editar
-                                </a>
-                                <a href="/pedidos/excluir?id=<?= $p['id'] ?>" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deseja realmente excluir este pedido?');">
-                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Excluir
-                                </a>
+                            <td class="text-right">
+                                <div class="actions-cell">
+                                    <a href="/pedidos/editar?id=<?= $p['id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="edit-2"></i> Editar
+                                    </a>
+                                    <a href="/pedidos/excluir?id=<?= $p['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deseja realmente excluir este pedido?');">
+                                        <i data-lucide="trash-2"></i> Excluir
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

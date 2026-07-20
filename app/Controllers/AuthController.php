@@ -91,6 +91,7 @@ class AuthController extends Controller
                 $_SESSION['nome'] = $user['nome'];
                 $_SESSION['email'] = $user['email'];
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['pode_excluir'] = (int)($user['pode_excluir'] ?? 0);
                 $_SESSION['status_pagamento'] = $user['status_pagamento'];
 
                 $this->redirect('/dashboard');

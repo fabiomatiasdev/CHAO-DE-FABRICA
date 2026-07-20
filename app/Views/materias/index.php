@@ -21,12 +21,12 @@
                 <tr>
                     <th>Nome do Insumo</th>
                     <th>U.M.</th>
-                    <th>Custo Unitário</th>
+                    <th class="text-right">Custo Unitário</th>
                     <th>Fornecedor</th>
-                    <th>Estoque Atual</th>
-                    <th>Estoque Mínimo</th>
-                    <th>Status Alerta</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th class="text-right">Estoque Atual</th>
+                    <th class="text-right">Estoque Mínimo</th>
+                    <th class="text-center">Status Alerta</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,26 +47,28 @@
                                 <strong><?= htmlspecialchars($item['nome']) ?></strong>
                             </td>
                             <td><?= htmlspecialchars($item['unidade_medida']) ?></td>
-                            <td>R$ <?= number_format($item['custo_unitario'], 4, ',', '.') ?></td>
+                            <td class="text-right">R$ <?= number_format($item['custo_unitario'], 2, ',', '.') ?></td>
                             <td><?= htmlspecialchars($item['fornecedor'] ?: 'N/D') ?></td>
-                            <td style="font-weight: 700; color: <?= $alertaEstoque ? 'var(--danger)' : '#334155' ?>;">
-                                <?= number_format($item['estoque_atual'], 2, ',', '.') ?>
+                            <td class="text-right" style="font-weight: 700; color: <?= $alertaEstoque ? 'var(--danger)' : '#334155' ?>;">
+                                <?= ($item['estoque_atual'] == (int)$item['estoque_atual']) ? number_format($item['estoque_atual'], 0, ',', '.') : number_format($item['estoque_atual'], 2, ',', '.') ?>
                             </td>
-                            <td><?= number_format($item['estoque_minimo'], 2, ',', '.') ?></td>
-                            <td>
+                            <td class="text-right"><?= ($item['estoque_minimo'] == (int)$item['estoque_minimo']) ? number_format($item['estoque_minimo'], 0, ',', '.') : number_format($item['estoque_minimo'], 2, ',', '.') ?></td>
+                            <td class="text-center">
                                 <?php if ($alertaEstoque): ?>
                                     <span class="badge badge-danger"><i data-lucide="alert-triangle" style="width:10px;height:10px;margin-right:2px;"></i> Compra Necessária</span>
                                 <?php else: ?>
                                     <span class="badge badge-success">OK</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align: right;" class="actions-cell">
-                                <a href="/materias/editar?id=<?= $item['id'] ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-                                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Editar
-                                </a>
-                                <a href="/materias/excluir?id=<?= $item['id'] ?>" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deseja realmente excluir esta matéria-prima?');">
-                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Excluir
-                                </a>
+                            <td class="text-right">
+                                <div class="actions-cell">
+                                    <a href="/materias/editar?id=<?= $item['id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="edit-2"></i> Editar
+                                    </a>
+                                    <a href="/materias/excluir?id=<?= $item['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deseja realmente excluir esta matéria-prima?');">
+                                        <i data-lucide="trash-2"></i> Excluir
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

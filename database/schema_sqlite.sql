@@ -59,8 +59,12 @@ CREATE TABLE IF NOT EXISTS `fichas_tecnicas` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `tenant_id` INTEGER NOT NULL,
   `produto_modelo_id` INTEGER NOT NULL UNIQUE,
-  `tempo_padrao` INTEGER NOT NULL DEFAULT 0,
+  `tempo_padrao` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   `custo_mao_obra` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `folga_necessidades` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_fadiga` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_atrasos` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_total` DECIMAL(5, 2) NOT NULL DEFAULT 15.00,
   `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
@@ -77,6 +81,23 @@ CREATE TABLE IF NOT EXISTS `fichas_tecnicas_itens` (
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`ficha_tecnica_id`) REFERENCES `fichas_tecnicas` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`materia_prima_id`) REFERENCES `materias_primas` (`id`) ON DELETE RESTRICT
+);
+
+-- 6b. Operações Cronometradas da Ficha Técnica
+CREATE TABLE IF NOT EXISTS `fichas_tecnicas_operacoes` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `tenant_id` INTEGER NOT NULL,
+  `ficha_tecnica_id` INTEGER NOT NULL,
+  `operador` VARCHAR(255) NULL,
+  `descricao_operacao` VARCHAR(255) NOT NULL,
+  `tempo_1` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `tempo_2` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `tempo_3` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `media` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `observacoes` TEXT NULL,
+  `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`ficha_tecnica_id`) REFERENCES `fichas_tecnicas` (`id`) ON DELETE CASCADE
 );
 
 -- 7. Oficinas / Facções
@@ -131,6 +152,8 @@ CREATE TABLE IF NOT EXISTS `ordens_producao` (
   `quantidade` INTEGER NOT NULL DEFAULT 0,
   `prazo` DATE NOT NULL,
   `status` VARCHAR(50) NOT NULL DEFAULT 'aberta',
+  `operadores` INTEGER NOT NULL DEFAULT 1,
+  `estoque_baixado` TINYINT NOT NULL DEFAULT 0,
   `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`pedido_venda_id`) REFERENCES `pedidos_venda` (`id`) ON DELETE SET NULL,
@@ -242,3 +265,19 @@ CREATE TABLE IF NOT EXISTS `logs_auditoria` (
   `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 );
+
+-- 19. Variantes de Cores e Tamanhos dos Modelos (Grade de Variantes)
+CREATE TABLE IF NOT EXISTS `produtos_variantes` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `tenant_id` INTEGER NOT NULL,
+  `produto_modelo_id` INTEGER NOT NULL,
+  `cor` VARCHAR(50) NOT NULL,
+  `tamanho` VARCHAR(20) NOT NULL,
+  `estoque_atual` INTEGER NOT NULL DEFAULT 0,
+  `estoque_minimo` INTEGER NOT NULL DEFAULT 0,
+  `criado_em` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (`tenant_id`, `produto_modelo_id`, `cor`, `tamanho`),
+  FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
+);
+

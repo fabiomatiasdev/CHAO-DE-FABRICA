@@ -87,3 +87,16 @@ VALUES
 INSERT INTO `tenants_financeiro` (`tenant_id`, `valor`, `mes_referencia`, `status_pagamento`)
 VALUES
 (1, 299.90, '2026-07', 'pago');
+
+-- Inserir Variantes de Cores e Tamanhos dos Modelos de Exemplo
+INSERT INTO `produtos_variantes` (`tenant_id`, `produto_modelo_id`, `cor`, `tamanho`, `estoque_atual`, `estoque_minimo`)
+VALUES
+(1, 1, 'Azul Marinho', 'P', 50, 10),
+(1, 1, 'Azul Marinho', 'M', 80, 15),
+(1, 1, 'Azul Marinho', 'G', 45, 10),
+(1, 2, 'Preto', '38', 20, 5),
+(1, 2, 'Preto', '40', 35, 8),
+(1, 2, 'Preto', '42', 15, 5),
+(1, 3, 'Cru', 'P', 12, 4),
+(1, 3, 'Cru', 'M', 25, 6);
+

@@ -23,10 +23,10 @@
                     <th>CNPJ/CPF</th>
                     <th>Endereço</th>
                     <th>Contato</th>
-                    <th>Capacidade Produtiva</th>
-                    <th>Valor Mão de Obra / Peça</th>
-                    <th>Status</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th class="text-right">Capacidade Produtiva</th>
+                    <th class="text-right">Valor Mão de Obra / Peça</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,22 +44,24 @@
                             <td><?= htmlspecialchars($of['cnpj_cpf']) ?></td>
                             <td><?= htmlspecialchars($of['endereco'] ?: 'N/D') ?></td>
                             <td><?= htmlspecialchars($of['contato'] ?: 'N/D') ?></td>
-                            <td><?= number_format($of['capacidade_produtiva'], 0, ',', '.') ?> peças/mês</td>
-                            <td style="font-weight: 600;">R$ <?= number_format($of['mao_obra_peca'], 2, ',', '.') ?></td>
-                            <td>
+                            <td class="text-right"><?= number_format($of['capacidade_produtiva'], 0, ',', '.') ?> peças/mês</td>
+                            <td class="text-right" style="font-weight: 600;">R$ <?= number_format($of['mao_obra_peca'], 2, ',', '.') ?></td>
+                            <td class="text-center">
                                 <?php if ($of['status'] === 'ativo'): ?>
                                     <span class="badge badge-success">Ativo</span>
                                 <?php else: ?>
                                     <span class="badge badge-secondary">Inativo</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align: right;" class="actions-cell">
-                                <a href="/oficinas/editar?id=<?= $of['id'] ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-                                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Editar
-                                </a>
-                                <a href="/oficinas/excluir?id=<?= $of['id'] ?>" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Deseja realmente excluir esta oficina?');">
-                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Excluir
-                                </a>
+                            <td class="text-right">
+                                <div class="actions-cell">
+                                    <a href="/oficinas/editar?id=<?= $of['id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="edit-2"></i> Editar
+                                    </a>
+                                    <a href="/oficinas/excluir?id=<?= $of['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Deseja realmente excluir esta oficina?');">
+                                        <i data-lucide="trash-2"></i> Excluir
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

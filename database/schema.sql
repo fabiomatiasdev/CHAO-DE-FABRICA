@@ -1,7 +1,5 @@
 -- Schema do Banco de Dados para o Sistema de PCP Multi-tenant
-
-CREATE DATABASE IF NOT EXISTS `pcp_confeccao` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `pcp_confeccao`;
+-- ATENÇÃO: Crie o banco de dados pelo painel da hospedagem antes de importar este arquivo.
 
 -- 1. Tenants (Empresas Clientes)
 CREATE TABLE IF NOT EXISTS `tenants` (
@@ -64,8 +62,12 @@ CREATE TABLE IF NOT EXISTS `fichas_tecnicas` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `tenant_id` INT NOT NULL,
   `produto_modelo_id` INT NOT NULL UNIQUE,
-  `tempo_padrao` INT NOT NULL DEFAULT 0, -- Tempo padrão de produção em minutos
+  `tempo_padrao` DECIMAL(10, 2) NOT NULL DEFAULT 0.00, -- Tempo padrão de produção em minutos
   `custo_mao_obra` DECIMAL(10, 2) NOT NULL DEFAULT 0.00, -- Custo estimado de mão de obra direta
+  `folga_necessidades` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_fadiga` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_atrasos` DECIMAL(5, 2) NOT NULL DEFAULT 5.00,
+  `folga_total` DECIMAL(5, 2) NOT NULL DEFAULT 15.00,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT `fk_fichas_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fichas_produto` FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
@@ -82,6 +84,23 @@ CREATE TABLE IF NOT EXISTS `fichas_tecnicas_itens` (
   CONSTRAINT `fk_fichas_itens_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fichas_itens_ficha` FOREIGN KEY (`ficha_tecnica_id`) REFERENCES `fichas_tecnicas` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fichas_itens_materia` FOREIGN KEY (`materia_prima_id`) REFERENCES `materias_primas` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6b. Operações Cronometradas da Ficha Técnica
+CREATE TABLE IF NOT EXISTS `fichas_tecnicas_operacoes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `ficha_tecnica_id` INT NOT NULL,
+  `operador` VARCHAR(255) NULL,
+  `descricao_operacao` VARCHAR(255) NOT NULL,
+  `tempo_1` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `tempo_2` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `tempo_3` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `media` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `observacoes` TEXT NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_fichas_ops_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fichas_ops_ficha` FOREIGN KEY (`ficha_tecnica_id`) REFERENCES `fichas_tecnicas` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 7. Oficinas / Facções
@@ -137,6 +156,8 @@ CREATE TABLE IF NOT EXISTS `ordens_producao` (
   `quantidade` INT NOT NULL DEFAULT 0,
   `prazo` DATE NOT NULL,
   `status` ENUM('aberta', 'em andamento', 'concluída', 'cancelada') NOT NULL DEFAULT 'aberta',
+  `operadores` INT NOT NULL DEFAULT 1,
+  `estoque_baixado` TINYINT NOT NULL DEFAULT 0,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT `fk_op_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_op_pedido` FOREIGN KEY (`pedido_venda_id`) REFERENCES `pedidos_venda` (`id`) ON DELETE SET NULL,
@@ -248,3 +269,19 @@ CREATE TABLE IF NOT EXISTS `logs_auditoria` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT `fk_logs_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 19. Variantes de Cores e Tamanhos dos Modelos (Grade de Variantes)
+CREATE TABLE IF NOT EXISTS `produtos_variantes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `produto_modelo_id` INT NOT NULL,
+  `cor` VARCHAR(50) NOT NULL,
+  `tamanho` VARCHAR(20) NOT NULL,
+  `estoque_atual` INT NOT NULL DEFAULT 0,
+  `estoque_minimo` INT NOT NULL DEFAULT 0,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `uk_variante_tenant_modelo_cor_tamanho` (`tenant_id`, `produto_modelo_id`, `cor`, `tamanho`),
+  CONSTRAINT `fk_variantes_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_variantes_modelo` FOREIGN KEY (`produto_modelo_id`) REFERENCES `produtos_modelos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

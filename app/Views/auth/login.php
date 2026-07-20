@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - PCP Confecção</title>
+    <title>Login - C4 Smart</title>
     <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/zTGpC3HB/fav-icon-c4.png">
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
-            <div class="login-header">
-                <div class="login-logo">P</div>
-                <h1 class="login-title">PCP Confecção</h1>
-                <p class="login-subtitle">Gestão de Produção Multi-tenant</p>
+            <div class="login-header" style="margin-bottom: 20px;">
+                <img src="https://i.ibb.co/WN0MpYZJ/c4-smart-2.png" alt="C4 Smart" style="max-height: 160px; width: 100%; max-width: 340px; margin-bottom: 0; display: block; margin-left: auto; margin-right: auto; object-fit: contain;">
             </div>
 
             <?php if (!empty($error)): ?>

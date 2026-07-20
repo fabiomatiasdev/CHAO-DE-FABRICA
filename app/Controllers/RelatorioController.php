@@ -263,7 +263,8 @@ class RelatorioController extends Controller
                     'custo_mp_total' => $custoMPTotal,
                     'custo_mo_total' => $custoMaoObraTotal,
                     'perda_financeira' => $perdaFinanceira,
-                    'tempo_total' => $tempoTotalMinutos
+                    'tempo_total' => $tempoTotalMinutos,
+                    'tempo_efetivo' => $tempoTotalMinutos / ($op['operadores'] ?: 1)
                 ];
             }
         }

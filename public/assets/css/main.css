@@ -36,7 +36,7 @@
     --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
     --radius: 12px;
-    --sidebar-width: 260px;
+    --sidebar-width: 230px;
 }
 
 * {
@@ -130,7 +130,8 @@ body {
 
 .form-control {
     width: 100%;
-    padding: 10px 14px;
+    height: 40px;
+    padding: 8px 12px;
     font-size: 14px;
     font-family: inherit;
     border: 1px solid var(--border);
@@ -139,6 +140,17 @@ body {
     color: var(--foreground);
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    line-height: 1.5;
+}
+
+select.form-control {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+textarea.form-control {
+    height: auto;
+    min-height: 80px;
 }
 
 .form-control:focus {
@@ -146,11 +158,13 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 18px;
+    height: 40px;
+    padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
@@ -160,6 +174,20 @@ body {
     transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     text-decoration: none;
     gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-sm {
+    height: 30px;
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    gap: 4px;
+}
+
+.btn-sm svg {
+    width: 12px !important;
+    height: 12px !important;
 }
 
 .btn:active {
@@ -320,7 +348,7 @@ body {
 
 .sidebar-menu {
     flex: 1;
-    padding: 20px 12px;
+    padding: 20px 8px;
 }
 
 .sidebar-category {
@@ -336,7 +364,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     color: #94a3b8;
     text-decoration: none;
     font-size: 14px;
@@ -391,8 +419,9 @@ body {
 /* Área de Conteúdo Principal */
 .main-content {
     flex: 1;
+    min-width: 0;
     margin-left: var(--sidebar-width);
-    padding: 40px;
+    padding: 24px 30px;
     background-color: var(--background);
     min-height: 100vh;
 }
@@ -574,15 +603,22 @@ body {
     background-color: #f8fafc;
     color: #475569;
     font-weight: 600;
-    padding: 12px 16px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .table-custom td {
-    padding: 14px 16px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     color: #334155;
     vertical-align: middle;
+    height: 52px;
+    white-space: nowrap;
+}
+
+.table-custom td.allow-wrap {
+    white-space: normal;
 }
 
 .table-custom tr:last-child td {
@@ -592,6 +628,36 @@ body {
 .table-custom tr:hover {
     background-color: #f8fafc;
 }
+
+/* Alinhamento de colunas */
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+
+.actions-cell {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* Classes utilitárias de largura para tabelas */
+.w-50 { min-width: 50px; }
+.w-80 { min-width: 80px; }
+.w-100 { min-width: 100px; }
+.w-120 { min-width: 120px; }
+.w-150 { min-width: 150px; }
+.w-180 { min-width: 180px; }
+.w-200 { min-width: 200px; }
+.w-250 { min-width: 250px; }
+
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 
 /* Badges de Status Operacionais */
 .badge {
@@ -656,6 +722,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
+    align-items: end;
 }
 
 .form-actions {
@@ -696,3 +763,54 @@ body {
 .btn-remove-row:hover {
     background-color: #fecaca;
 }
+
+/* ==========================================================================
+   ESTADO COLAPSADO DA SIDEBAR
+   ========================================================================== */
+.sidebar {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content {
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+
+body.sidebar-collapsed .main-content {
+    margin-left: 0;
+}
+
+/* Botão Flutuante de Colapso da Sidebar (Notion/Linear style) */
+.sidebar-collapse-button {
+    position: fixed;
+    left: calc(var(--sidebar-width) - 12px);
+    top: 24px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    color: var(--muted);
+    z-index: 1001;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+}
+
+.sidebar-collapse-button:hover {
+    background-color: #f1f5f9;
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+body.sidebar-collapsed .sidebar-collapse-button {
+    left: 12px;
+}
+
+
