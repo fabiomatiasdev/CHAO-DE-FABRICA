@@ -1,4 +1,8 @@
 <?php 
+    /**
+     * @var array|null $pagination
+     * @var string|null $pageParamName
+     */
     $pParam = $pageParamName ?? 'page';
     if (!empty($pagination) && isset($pagination['total']) && $pagination['total'] > 0): 
 ?>
