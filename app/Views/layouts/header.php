@@ -79,6 +79,9 @@ $isActive = function($path) use ($currentUri) {
             </a>
 
             <div class="sidebar-category">PCP</div>
+            <a href="/calendario" class="sidebar-item <?= $isActive('/calendario') ?>">
+                <i data-lucide="calendar"></i> Calendário & Coleções
+            </a>
             <a href="/ops" class="sidebar-item <?= $isActive('/ops') ?> <?= $isActive('/ops/novo') ?> <?= $isActive('/ops/editar') ?>">
                 <i data-lucide="clipboard-list"></i> Ordens de Produção
             </a>

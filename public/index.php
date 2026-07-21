@@ -119,6 +119,14 @@ $router->get('/ops/editar', [App\Controllers\OrdemProducaoController::class, 'ed
 $router->post('/ops/editar', [App\Controllers\OrdemProducaoController::class, 'update'], [AuthMiddleware::class]);
 $router->get('/ops/excluir', [App\Controllers\OrdemProducaoController::class, 'delete'], [AuthMiddleware::class]);
 
+// PCP - Calendário de Coleções & Cronograma
+$router->get('/calendario', [App\Controllers\CalendarioController::class, 'index'], [AuthMiddleware::class]);
+$router->post('/colecoes/novo', [App\Controllers\CalendarioController::class, 'storeColecao'], [AuthMiddleware::class]);
+$router->get('/colecoes/excluir', [App\Controllers\CalendarioController::class, 'excluirColecao'], [AuthMiddleware::class]);
+$router->post('/tarefas/novo', [App\Controllers\CalendarioController::class, 'storeTarefa'], [AuthMiddleware::class]);
+$router->get('/tarefas/concluir', [App\Controllers\CalendarioController::class, 'concluirTarefa'], [AuthMiddleware::class]);
+$router->get('/tarefas/excluir', [App\Controllers\CalendarioController::class, 'excluirTarefa'], [AuthMiddleware::class]);
+
 // PCP - Ordens de Corte
 $router->get('/corte', [App\Controllers\OrdemCorteController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/corte/novo', [App\Controllers\OrdemCorteController::class, 'create'], [AuthMiddleware::class]);
