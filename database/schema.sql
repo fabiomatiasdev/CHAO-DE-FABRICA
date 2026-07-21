@@ -315,4 +315,42 @@ CREATE TABLE IF NOT EXISTS `envios_faccao` (
   CONSTRAINT `fk_envios_oficina` FOREIGN KEY (`oficina_faccao_id`) REFERENCES `oficinas_faccoes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 22. Coleções
+CREATE TABLE IF NOT EXISTS `colecoes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `nome` VARCHAR(255) NOT NULL,
+  `descricao` TEXT NULL,
+  `data_inicio` DATE NOT NULL,
+  `data_fim` DATE NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'planejada',
+  `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_colecoes_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 23. Coleções - Ordens de Produção (Vínculo)
+CREATE TABLE IF NOT EXISTS `colecoes_ops` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `colecao_id` INT NOT NULL,
+  `ordem_producao_id` INT NOT NULL,
+  CONSTRAINT `fk_colecoes_ops_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_colecoes_ops_colecao` FOREIGN KEY (`colecao_id`) REFERENCES `colecoes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_colecoes_ops_op` FOREIGN KEY (`ordem_producao_id`) REFERENCES `ordens_producao` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 24. Cronograma de Tarefas / Afazeres PCP
+CREATE TABLE IF NOT EXISTS `cronograma_tarefas` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tenant_id` INT NOT NULL,
+  `colecao_id` INT NULL,
+  `titulo` VARCHAR(255) NOT NULL,
+  `descricao` TEXT NULL,
+  `data_execucao` DATE NOT NULL,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'pendente',
+  `responsavel` VARCHAR(150) NULL,
+  `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_tarefas_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
