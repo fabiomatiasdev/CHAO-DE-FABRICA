@@ -25,8 +25,18 @@ class EstoqueController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
 
-        // Buscar histórico de ajustes
+        $total = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM estoque_movimentacoes WHERE tenant_id = :tenant_id",
+            ['tenant_id' => $tenantId]
+        )['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        // Buscar histórico de ajustes paginado
         $ajustes = Database::fetchAll(
             "SELECT em.*, u.nome as usuario_nome, le.nome as local_nome,
                     COALESCE(mp.nome, pm.nome) as item_nome
@@ -36,8 +46,8 @@ class EstoqueController extends Controller
              LEFT JOIN materias_primas mp ON em.tipo_item = 'materia_prima' AND em.item_id = mp.id
              LEFT JOIN produtos_modelos pm ON em.tipo_item = 'produto_acabado' AND em.item_id = pm.id
              WHERE em.tenant_id = :tenant_id
-             ORDER BY em.id DESC LIMIT 50",
-            ['tenant_id' => $tenantId]
+             ORDER BY em.id DESC LIMIT :limit OFFSET :offset",
+            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offset]
         );
 
         // Carregar matérias-primas e produtos acabados
@@ -69,12 +79,13 @@ class EstoqueController extends Controller
         );
 
         $this->render('estoque/ajuste', [
-            'title' => 'Ajuste de Estoque (Insumos e Acabados)',
-            'subtitle' => 'Realize entradas e saídas manuais selecionando o local de armazenamento',
-            'ajustes' => $ajustes,
-            'materias' => $materias,
-            'produtos' => $produtos,
-            'locaisEstoque' => $locaisEstoque
+            'title'         => 'Ajuste de Estoque (Insumos e Acabados)',
+            'subtitle'      => 'Realize entradas e saídas manuais selecionando o local de armazenamento',
+            'ajustes'       => $ajustes,
+            'materias'      => $materias,
+            'produtos'      => $produtos,
+            'locaisEstoque' => $locaisEstoque,
+            'pagination'    => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

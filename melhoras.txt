@@ -1,0 +1,23 @@
+Lançamentos de Corte de Tecidos
+Ordens de Produção Recentes
+Últimas Movimentações de Estoque
+Produção por Período
+Modelos de Produtos Cadastrados
+Matérias-Primas & Aviamentos
+Fichas Técnicas
+Oficinas & Facções Parceiras
+Apuração de Custo Unitário Total de Produção
+Custos Industriais Lancados no Mês
+Pedidos de Venda
+Contas a Pagar por Oficina (Apuração de Peças Retornadas)
+Ordens de Produção (OP)
+Lançamentos de Corte de Tecidos
+Quadro de Acompanhamento Produtivo - apenas 5 por paginação
+Lotes Enviados para Oficinas - apenas 7 por paginação
+Histórico de Retornos de Oficinas - apenas 7 por paginação
+Locais de Estoque (Armazenadores)
+Histórico de Movimentações de Estoque
+Grade de Estoque de Produtos Acabados
+Classificação Curva ABC de Insumos
+Detalhamento das Perdas Produtivas
+Inspeções de Qualidade Registradas

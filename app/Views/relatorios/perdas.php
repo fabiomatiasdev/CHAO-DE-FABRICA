@@ -96,6 +96,8 @@
             </tbody>
         </table>
     </div>
+
+    <?php require __DIR__ . '/../layouts/pagination.php'; ?>
 </div>
 
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

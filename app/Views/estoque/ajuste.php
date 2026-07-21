@@ -125,6 +125,8 @@
                 </tbody>
             </table>
         </div>
+
+        <?php require __DIR__ . '/../layouts/pagination.php'; ?>
     </div>
 </div>
 

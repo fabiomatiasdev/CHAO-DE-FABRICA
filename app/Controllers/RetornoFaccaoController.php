@@ -17,8 +17,18 @@ class RetornoFaccaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
+        $perPage  = 7;
 
-        // Envios para Facções
+        // Paginação Envios
+        $pageEnvios  = max(1, (int)($_GET['page_envios'] ?? 1));
+        $totalEnvios = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM envios_faccao WHERE tenant_id = :tenant_id",
+            ['tenant_id' => $tenantId]
+        )['total'] ?? 0);
+        $totalPagesEnvios = $totalEnvios > 0 ? (int) ceil($totalEnvios / $perPage) : 1;
+        $pageEnvios       = max(1, min($pageEnvios, $totalPagesEnvios));
+        $offsetEnvios     = ($pageEnvios - 1) * $perPage;
+
         $envios = Database::fetchAll(
             "SELECT ef.*, op.id as op_id, pm.nome as modelo_nome, pm.referencia, of.nome as oficina_nome
              FROM envios_faccao ef
@@ -26,11 +36,20 @@ class RetornoFaccaoController extends Controller
              JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
              JOIN oficinas_faccoes of ON ef.oficina_faccao_id = of.id
              WHERE ef.tenant_id = :tenant_id
-             ORDER BY ef.id DESC",
-            ['tenant_id' => $tenantId]
+             ORDER BY ef.id DESC LIMIT :limit OFFSET :offset",
+            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offsetEnvios]
         );
 
-        // Retornos de Facções
+        // Paginação Retornos
+        $pageRetornos  = max(1, (int)($_GET['page_retornos'] ?? 1));
+        $totalRetornos = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM retornos_faccao WHERE tenant_id = :tenant_id",
+            ['tenant_id' => $tenantId]
+        )['total'] ?? 0);
+        $totalPagesRetornos = $totalRetornos > 0 ? (int) ceil($totalRetornos / $perPage) : 1;
+        $pageRetornos       = max(1, min($pageRetornos, $totalPagesRetornos));
+        $offsetRetornos     = ($pageRetornos - 1) * $perPage;
+
         $retornos = Database::fetchAll(
             "SELECT rf.*, op.id as op_id, pm.nome as modelo_nome, pm.referencia, of.nome as oficina_nome
              FROM retornos_faccao rf
@@ -39,15 +58,17 @@ class RetornoFaccaoController extends Controller
              LEFT JOIN envios_faccao ef ON rf.envio_faccao_id = ef.id
              LEFT JOIN oficinas_faccoes of ON (ef.oficina_faccao_id = of.id OR op.oficina_faccao_id = of.id)
              WHERE rf.tenant_id = :tenant_id
-             ORDER BY rf.id DESC",
-            ['tenant_id' => $tenantId]
+             ORDER BY rf.id DESC LIMIT :limit OFFSET :offset",
+            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offsetRetornos]
         );
 
         $this->render('retornos/index', [
-            'title' => 'Gestão de Facções (Envios e Retornos)',
-            'subtitle' => 'Envie lotes cortados para oficinas terceirizadas, acompanhe os retornos e apure as perdas',
-            'envios' => $envios,
-            'retornos' => $retornos
+            'title'              => 'Gestão de Facções (Envios e Retornos)',
+            'subtitle'           => 'Envie lotes cortados para oficinas terceirizadas, acompanhe os retornos e apure as perdas',
+            'envios'             => $envios,
+            'retornos'           => $retornos,
+            'paginationEnvios'   => ['total' => $totalEnvios, 'perPage' => $perPage, 'currentPage' => $pageEnvios, 'totalPages' => $totalPagesEnvios],
+            'paginationRetornos' => ['total' => $totalRetornos, 'perPage' => $perPage, 'currentPage' => $pageRetornos, 'totalPages' => $totalPagesRetornos]
         ]);
     }
 

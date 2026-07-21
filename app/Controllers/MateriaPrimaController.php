@@ -17,32 +17,38 @@ class MateriaPrimaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca = trim($_GET['busca'] ?? '');
+        $busca    = trim($_GET['busca'] ?? '');
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $whereClause = 'WHERE tenant_id = :tenant_id';
+        $params      = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
-            $itens = Database::fetchAll(
-                "SELECT * FROM materias_primas 
-                 WHERE tenant_id = :tenant_id 
-                   AND (nome LIKE :busca OR fornecedor LIKE :busca2)
-                 ORDER BY id DESC",
-                [
-                    'tenant_id' => $tenantId,
-                    'busca'     => '%' . $busca . '%',
-                    'busca2'    => '%' . $busca . '%',
-                ]
-            );
-        } else {
-            $itens = Database::fetchAll(
-                "SELECT * FROM materias_primas WHERE tenant_id = :tenant_id ORDER BY id DESC",
-                ['tenant_id' => $tenantId]
-            );
+            $whereClause .= ' AND (nome LIKE :busca OR fornecedor LIKE :busca2)';
+            $params['busca']  = '%' . $busca . '%';
+            $params['busca2'] = '%' . $busca . '%';
         }
 
+        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM materias_primas $whereClause", $params)['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        $params['limit']  = $perPage;
+        $params['offset'] = $offset;
+
+        $itens = Database::fetchAll(
+            "SELECT * FROM materias_primas $whereClause ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            $params
+        );
+
         $this->render('materias/index', [
-            'title' => 'Matérias-Primas',
-            'subtitle' => 'Cadastre e acompanhe o estoque de tecidos, aviamentos, botões, zíperes, etc.',
-            'itens' => $itens,
-            'busca' => $busca
+            'title'      => 'Matérias-Primas',
+            'subtitle'   => 'Cadastre e acompanhe o estoque de tecidos, aviamentos, botões, zíperes, etc.',
+            'itens'      => $itens,
+            'busca'      => $busca,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

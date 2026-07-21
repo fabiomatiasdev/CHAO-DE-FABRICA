@@ -17,14 +17,27 @@ class FichaTecnicaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $total = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM fichas_tecnicas ft
+             JOIN produtos_modelos pm ON ft.produto_modelo_id = pm.id
+             WHERE ft.tenant_id = :tenant_id",
+            ['tenant_id' => $tenantId]
+        )['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
 
         $fichas = Database::fetchAll(
             "SELECT ft.*, pm.nome as modelo_nome, pm.referencia, pm.cor
              FROM fichas_tecnicas ft 
              JOIN produtos_modelos pm ON ft.produto_modelo_id = pm.id
              WHERE ft.tenant_id = :tenant_id
-             ORDER BY ft.id DESC",
-            ['tenant_id' => $tenantId]
+             ORDER BY ft.id DESC
+             LIMIT :limit OFFSET :offset",
+            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offset]
         );
 
         // Para cada ficha técnica, calcular o custo estimado de matéria-prima
@@ -37,14 +50,15 @@ class FichaTecnicaController extends Controller
                 ['ficha_id' => $f['id']]
             )['total'] ?? 0;
 
-            $f['custo_materia_prima'] = $custoMP;
+            $f['custo_materia_prima']  = $custoMP;
             $f['custo_total_estimado'] = $custoMP + $f['custo_mao_obra'];
         }
 
         $this->render('fichas/index', [
-            'title' => 'Fichas Técnicas',
-            'subtitle' => 'Gerencie o consumo de matérias-primas e custos operacionais de cada modelo',
-            'fichas' => $fichas
+            'title'      => 'Fichas Técnicas',
+            'subtitle'   => 'Gerencie o consumo de matérias-primas e custos operacionais de cada modelo',
+            'fichas'     => $fichas,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

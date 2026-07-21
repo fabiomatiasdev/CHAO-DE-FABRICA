@@ -17,33 +17,39 @@ class OficinaFaccaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca = trim($_GET['busca'] ?? '');
+        $busca    = trim($_GET['busca'] ?? '');
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $whereClause = 'WHERE tenant_id = :tenant_id';
+        $params      = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
-            $oficinas = Database::fetchAll(
-                "SELECT * FROM oficinas_faccoes 
-                 WHERE tenant_id = :tenant_id 
-                   AND (nome LIKE :busca OR cnpj_cpf LIKE :busca2 OR contato LIKE :busca3)
-                 ORDER BY id DESC",
-                [
-                    'tenant_id' => $tenantId,
-                    'busca'     => '%' . $busca . '%',
-                    'busca2'    => '%' . $busca . '%',
-                    'busca3'    => '%' . $busca . '%',
-                ]
-            );
-        } else {
-            $oficinas = Database::fetchAll(
-                "SELECT * FROM oficinas_faccoes WHERE tenant_id = :tenant_id ORDER BY id DESC",
-                ['tenant_id' => $tenantId]
-            );
+            $whereClause .= ' AND (nome LIKE :busca OR cnpj_cpf LIKE :busca2 OR contato LIKE :busca3)';
+            $params['busca']  = '%' . $busca . '%';
+            $params['busca2'] = '%' . $busca . '%';
+            $params['busca3'] = '%' . $busca . '%';
         }
 
+        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM oficinas_faccoes $whereClause", $params)['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        $params['limit']  = $perPage;
+        $params['offset'] = $offset;
+
+        $oficinas = Database::fetchAll(
+            "SELECT * FROM oficinas_faccoes $whereClause ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            $params
+        );
+
         $this->render('oficinas/index', [
-            'title' => 'Oficinas / Facções',
-            'subtitle' => 'Cadastre e gerencie a capacidade produtiva e valores de costura das oficinas terceirizadas',
-            'oficinas' => $oficinas,
-            'busca' => $busca
+            'title'      => 'Oficinas / Facções',
+            'subtitle'   => 'Cadastre e gerencie a capacidade produtiva e valores de costura das oficinas terceirizadas',
+            'oficinas'   => $oficinas,
+            'busca'      => $busca,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

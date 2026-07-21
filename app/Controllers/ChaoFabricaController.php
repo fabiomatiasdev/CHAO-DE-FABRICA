@@ -17,15 +17,27 @@ class ChaoFabricaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
+        $perPage  = 5;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
 
-        // Buscar todas as OPs ativas (abertas ou em andamento) para mostrar o painel visual
+        $total = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM ordens_producao op
+             JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
+             WHERE op.tenant_id = :tenant_id AND op.status != 'cancelada'",
+            ['tenant_id' => $tenantId]
+        )['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        // Buscar OPs ativas paginadas para o painel visual
         $ops = Database::fetchAll(
             "SELECT op.id, op.quantidade, op.status as op_status, pm.nome as modelo_nome, pm.referencia
              FROM ordens_producao op
              JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
              WHERE op.tenant_id = :tenant_id AND op.status != 'cancelada'
-             ORDER BY op.id DESC",
-            ['tenant_id' => $tenantId]
+             ORDER BY op.id DESC LIMIT :limit OFFSET :offset",
+            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offset]
         );
 
         $db = Database::getConnection();
@@ -168,9 +180,10 @@ class ChaoFabricaController extends Controller
         }
 
         $this->render('chao_fabrica/index', [
-            'title' => 'Chão de Fábrica',
-            'subtitle' => 'Painel visual de acompanhamento das etapas produtivas de cada OP',
-            'ops' => $ops
+            'title'      => 'Chão de Fábrica',
+            'subtitle'   => 'Painel visual de acompanhamento das etapas produtivas de cada OP',
+            'ops'        => $ops,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

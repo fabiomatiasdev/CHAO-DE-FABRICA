@@ -17,33 +17,39 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca = trim($_GET['busca'] ?? '');
+        $busca    = trim($_GET['busca'] ?? '');
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $whereClause = 'WHERE tenant_id = :tenant_id';
+        $params      = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
-            $modelos = Database::fetchAll(
-                "SELECT * FROM produtos_modelos 
-                 WHERE tenant_id = :tenant_id 
-                   AND (nome LIKE :busca OR referencia LIKE :busca2 OR categoria LIKE :busca3)
-                 ORDER BY id DESC",
-                [
-                    'tenant_id' => $tenantId,
-                    'busca'     => '%' . $busca . '%',
-                    'busca2'    => '%' . $busca . '%',
-                    'busca3'    => '%' . $busca . '%',
-                ]
-            );
-        } else {
-            $modelos = Database::fetchAll(
-                "SELECT * FROM produtos_modelos WHERE tenant_id = :tenant_id ORDER BY id DESC",
-                ['tenant_id' => $tenantId]
-            );
+            $whereClause .= ' AND (nome LIKE :busca OR referencia LIKE :busca2 OR categoria LIKE :busca3)';
+            $params['busca']  = '%' . $busca . '%';
+            $params['busca2'] = '%' . $busca . '%';
+            $params['busca3'] = '%' . $busca . '%';
         }
 
+        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM produtos_modelos $whereClause", $params)['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        $params['limit']  = $perPage;
+        $params['offset'] = $offset;
+
+        $modelos = Database::fetchAll(
+            "SELECT * FROM produtos_modelos $whereClause ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            $params
+        );
+
         $this->render('produtos/index', [
-            'title' => 'Modelos de Produtos',
-            'subtitle' => 'Cadastre e gerencie a grade de modelos de roupas e tamanhos',
-            'modelos' => $modelos,
-            'busca' => $busca
+            'title'      => 'Modelos de Produtos',
+            'subtitle'   => 'Cadastre e gerencie a grade de modelos de roupas e tamanhos',
+            'modelos'    => $modelos,
+            'busca'      => $busca,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

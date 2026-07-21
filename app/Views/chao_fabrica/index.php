@@ -167,6 +167,8 @@
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+
+    <?php require __DIR__ . '/../layouts/pagination.php'; ?>
 </div>
 
 <script>

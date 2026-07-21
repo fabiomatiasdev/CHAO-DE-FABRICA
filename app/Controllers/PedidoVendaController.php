@@ -17,39 +17,40 @@ class PedidoVendaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca = trim($_GET['busca'] ?? '');
+        $busca    = trim($_GET['busca'] ?? '');
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $joinClause  = 'JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id';
+        $whereClause = 'WHERE pv.tenant_id = :tenant_id';
+        $params      = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
-            $pedidos = Database::fetchAll(
-                "SELECT pv.*, pm.nome as modelo_nome, pm.referencia 
-                 FROM pedidos_venda pv
-                 JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id
-                 WHERE pv.tenant_id = :tenant_id 
-                   AND (pv.cliente LIKE :busca OR pm.nome LIKE :busca2 OR pm.referencia LIKE :busca3)
-                 ORDER BY pv.id DESC",
-                [
-                    'tenant_id' => $tenantId,
-                    'busca'     => '%' . $busca . '%',
-                    'busca2'    => '%' . $busca . '%',
-                    'busca3'    => '%' . $busca . '%',
-                ]
-            );
-        } else {
-            $pedidos = Database::fetchAll(
-                "SELECT pv.*, pm.nome as modelo_nome, pm.referencia 
-                 FROM pedidos_venda pv
-                 JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id
-                 WHERE pv.tenant_id = :tenant_id 
-                 ORDER BY pv.id DESC",
-                ['tenant_id' => $tenantId]
-            );
+            $whereClause .= ' AND (pv.cliente LIKE :busca OR pm.nome LIKE :busca2 OR pm.referencia LIKE :busca3)';
+            $params['busca']  = '%' . $busca . '%';
+            $params['busca2'] = '%' . $busca . '%';
+            $params['busca3'] = '%' . $busca . '%';
         }
 
+        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM pedidos_venda pv $joinClause $whereClause", $params)['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        $params['limit']  = $perPage;
+        $params['offset'] = $offset;
+
+        $pedidos = Database::fetchAll(
+            "SELECT pv.*, pm.nome as modelo_nome, pm.referencia FROM pedidos_venda pv $joinClause $whereClause ORDER BY pv.id DESC LIMIT :limit OFFSET :offset",
+            $params
+        );
+
         $this->render('pedidos/index', [
-            'title' => 'Pedidos de Venda',
-            'subtitle' => 'Cadastre e acompanhe os pedidos comerciais e prazos de entrega acordados',
-            'pedidos' => $pedidos,
-            'busca' => $busca
+            'title'      => 'Pedidos de Venda',
+            'subtitle'   => 'Cadastre e acompanhe os pedidos comerciais e prazos de entrega acordados',
+            'pedidos'    => $pedidos,
+            'busca'      => $busca,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

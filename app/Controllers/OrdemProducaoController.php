@@ -17,37 +17,40 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca = trim($_GET['busca'] ?? '');
+        $busca    = trim($_GET['busca'] ?? '');
+        $perPage  = 10;
+        $page     = max(1, (int)($_GET['page'] ?? 1));
+
+        $joinClause  = "JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
+                 LEFT JOIN oficinas_faccoes of ON op.oficina_faccao_id = of.id
+                 LEFT JOIN pedidos_venda pv ON op.pedido_venda_id = pv.id";
+        $whereClause = 'WHERE op.tenant_id = :tenant_id';
+        $params      = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
-            $ops = Database::fetchAll(
-                "SELECT op.*, pm.nome as modelo_nome, pm.referencia, of.nome as oficina_nome, pv.cliente as cliente_nome
-                 FROM ordens_producao op
-                 JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
-                 LEFT JOIN oficinas_faccoes of ON op.oficina_faccao_id = of.id
-                 LEFT JOIN pedidos_venda pv ON op.pedido_venda_id = pv.id
-                 WHERE op.tenant_id = :tenant_id 
-                   AND (pm.nome LIKE :busca OR pm.referencia LIKE :busca2 OR of.nome LIKE :busca3)
-                 ORDER BY op.id DESC",
-                [
-                    'tenant_id' => $tenantId,
-                    'busca'     => '%' . $busca . '%',
-                    'busca2'    => '%' . $busca . '%',
-                    'busca3'    => '%' . $busca . '%',
-                ]
-            );
-        } else {
-            $ops = Database::fetchAll(
-                "SELECT op.*, pm.nome as modelo_nome, pm.referencia, of.nome as oficina_nome, pv.cliente as cliente_nome
-                 FROM ordens_producao op
-                 JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
-                 LEFT JOIN oficinas_faccoes of ON op.oficina_faccao_id = of.id
-                 LEFT JOIN pedidos_venda pv ON op.pedido_venda_id = pv.id
-                 WHERE op.tenant_id = :tenant_id 
-                 ORDER BY op.id DESC",
-                ['tenant_id' => $tenantId]
-            );
+            $whereClause .= ' AND (pm.nome LIKE :busca OR pm.referencia LIKE :busca2 OR of.nome LIKE :busca3)';
+            $params['busca']  = '%' . $busca . '%';
+            $params['busca2'] = '%' . $busca . '%';
+            $params['busca3'] = '%' . $busca . '%';
         }
+
+        $total      = (int)(Database::fetch(
+            "SELECT COUNT(*) as total FROM ordens_producao op $joinClause $whereClause",
+            $params
+        )['total'] ?? 0);
+        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        $page       = max(1, min($page, $totalPages));
+        $offset     = ($page - 1) * $perPage;
+
+        $params['limit']  = $perPage;
+        $params['offset'] = $offset;
+
+        $ops = Database::fetchAll(
+            "SELECT op.*, pm.nome as modelo_nome, pm.referencia, of.nome as oficina_nome, pv.cliente as cliente_nome
+             FROM ordens_producao op $joinClause $whereClause
+             ORDER BY op.id DESC LIMIT :limit OFFSET :offset",
+            $params
+        );
 
         // Buscar variações de cada OP
         foreach ($ops as &$op) {
@@ -61,10 +64,11 @@ class OrdemProducaoController extends Controller
         }
 
         $this->render('ops/index', [
-            'title' => 'Ordens de Produção (OP)',
-            'subtitle' => 'Planeje, distribua para oficinas e acompanhe a fabricação de lotes de roupas',
-            'ops' => $ops,
-            'busca' => $busca
+            'title'      => 'Ordens de Produção (OP)',
+            'subtitle'   => 'Planeje, distribua para oficinas e acompanhe a fabricação de lotes de roupas',
+            'ops'        => $ops,
+            'busca'      => $busca,
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 

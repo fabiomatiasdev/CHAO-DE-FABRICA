@@ -129,8 +129,8 @@ class OrdemCorteController extends Controller
                         'tenant_id2' => $tenantId
                     ]
                 );
-                
-                $v['quantidade_cortada'] = (int)($corteInfo['total_cortado'] ?? 0);
+
+                $v['quantidade_cortada'] = (int) ($corteInfo['total_cortado'] ?? 0);
             }
         }
 
@@ -159,23 +159,23 @@ class OrdemCorteController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $ordem_producao_id = (int)($_POST['ordem_producao_id'] ?? 0);
+        $ordem_producao_id = (int) ($_POST['ordem_producao_id'] ?? 0);
         $responsavel = trim($_POST['responsavel'] ?? '');
         $data_corte = $_POST['data_corte'] ?? date('Y-m-d');
         $finalizar_corte = !empty($_POST['finalizar_corte']);
 
-        $materia_prima_id = !empty($_POST['materia_prima_id']) ? (int)$_POST['materia_prima_id'] : null;
-        $quantidade_real_utilizada = !empty($_POST['quantidade_real_utilizada']) ? (float)$_POST['quantidade_real_utilizada'] : 0.0;
+        $materia_prima_id = !empty($_POST['materia_prima_id']) ? (int) $_POST['materia_prima_id'] : null;
+        $quantidade_real_utilizada = !empty($_POST['quantidade_real_utilizada']) ? (float) $_POST['quantidade_real_utilizada'] : 0.0;
         $unidade_medida = trim($_POST['unidade_medida'] ?? '');
-        
+
         $variante_ids = $_POST['variante_ids'] ?? [];
         $quantidades_cortadas = $_POST['quantidades_cortadas'] ?? [];
 
         $quantidade_total_cortada = 0;
         $variantesCorte = [];
         foreach ($variante_ids as $index => $vId) {
-            $vId = (int)$vId;
-            $qtd = (int)($quantidades_cortadas[$index] ?? 0);
+            $vId = (int) $vId;
+            $qtd = (int) ($quantidades_cortadas[$index] ?? 0);
             if ($vId > 0 && $qtd > 0) {
                 $quantidade_total_cortada += $qtd;
                 $variantesCorte[] = [
@@ -231,21 +231,21 @@ class OrdemCorteController extends Controller
                      SET estoque_atual = GREATEST(0, estoque_atual - :qtd) 
                      WHERE id = :mp_id AND tenant_id = :tenant_id"
                 )->execute([
-                    'qtd' => $quantidade_real_utilizada,
-                    'mp_id' => $materia_prima_id,
-                    'tenant_id' => $tenantId
-                ]);
+                            'qtd' => $quantidade_real_utilizada,
+                            'mp_id' => $materia_prima_id,
+                            'tenant_id' => $tenantId
+                        ]);
 
                 $db->prepare(
                     "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id) 
                      VALUES (:tenant_id, 'materia_prima', :mp_id, :qtd, 'saida', :motivo, :user_id)"
                 )->execute([
-                    'tenant_id' => $tenantId,
-                    'mp_id' => $materia_prima_id,
-                    'qtd' => $quantidade_real_utilizada,
-                    'motivo' => "Consumo real no Corte da OP #{$ordem_producao_id}",
-                    'user_id' => $_SESSION['user_id'] ?? null
-                ]);
+                            'tenant_id' => $tenantId,
+                            'mp_id' => $materia_prima_id,
+                            'qtd' => $quantidade_real_utilizada,
+                            'motivo' => "Consumo real no Corte da OP #{$ordem_producao_id}",
+                            'user_id' => $_SESSION['user_id'] ?? null
+                        ]);
             }
 
             // 2. Inserir variações cortadas na tabela pivot ordens_corte_variantes
@@ -270,7 +270,7 @@ class OrdemCorteController extends Controller
                    AND (produto_variante_id = :variante_id1 OR (produto_variante_id IS NULL AND :variante_id2 IS NULL)) 
                    AND etapa = 'corte'"
             );
-            
+
             $stmtEtapaCostura = $db->prepare(
                 "UPDATE chao_fabrica_etapas 
                  SET status = 'em andamento' 
@@ -289,12 +289,12 @@ class OrdemCorteController extends Controller
                         ['op_id' => $ordem_producao_id, 'variante_id' => $v['variante_id']]
                     );
                     if ($metaInfo) {
-                        $metaQtd = (int)$metaInfo['quantidade'];
+                        $metaQtd = (int) $metaInfo['quantidade'];
                     }
                 }
                 if ($metaQtd <= 0) {
                     $opInfo = Database::fetch("SELECT quantidade FROM ordens_producao WHERE id = :op_id", ['op_id' => $ordem_producao_id]);
-                    $metaQtd = $opInfo ? (int)$opInfo['quantidade'] : 0;
+                    $metaQtd = $opInfo ? (int) $opInfo['quantidade'] : 0;
                 }
 
                 // 3.2 Buscar total acumulado já cortado (incluindo o lançamento atual)
@@ -338,8 +338,8 @@ class OrdemCorteController extends Controller
                         ]
                     );
                 }
-                
-                $totalCortado = (int)($corteInfo['total_cortado'] ?? 0);
+
+                $totalCortado = (int) ($corteInfo['total_cortado'] ?? 0);
 
                 // 3.3 Se o usuário marcou para finalizar o corte ou se atingiu a meta estimada
                 $novoStatusCorte = ($finalizar_corte || $totalCortado >= $metaQtd) ? 'concluído' : 'em andamento';
@@ -389,7 +389,7 @@ class OrdemCorteController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $isAdmin = isset($_SESSION['is_superadmin']) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
         $podeExcluir = isset($_SESSION['pode_excluir']) && $_SESSION['pode_excluir'] === 1;
@@ -416,7 +416,7 @@ class OrdemCorteController extends Controller
             $this->redirect('/corte');
         }
 
-        $ordem_producao_id = (int)$corte['ordem_producao_id'];
+        $ordem_producao_id = (int) $corte['ordem_producao_id'];
 
         // 2. Descobrir quais variações estavam ligadas a este corte
         $variantesDoCorte = Database::fetchAll(
@@ -426,9 +426,11 @@ class OrdemCorteController extends Controller
 
         // Se estiver vazio, trata a variante direta da tabela ordens_corte (caso legado)
         if (empty($variantesDoCorte) && !empty($corte['produto_variante_id'])) {
-            $variantesDoCorte = [[
-                'produto_variante_id' => $corte['produto_variante_id']
-            ]];
+            $variantesDoCorte = [
+                [
+                    'produto_variante_id' => $corte['produto_variante_id']
+                ]
+            ];
         }
 
         try {
@@ -437,11 +439,11 @@ class OrdemCorteController extends Controller
 
             // 3. Deletar da pivot ordens_corte_variantes
             $db->prepare("DELETE FROM ordens_corte_variantes WHERE ordem_corte_id = :corte_id AND tenant_id = :tenant_id")
-               ->execute(['corte_id' => $id, 'tenant_id' => $tenantId]);
+                ->execute(['corte_id' => $id, 'tenant_id' => $tenantId]);
 
             // 4. Deletar da tabela principal ordens_corte
             $db->prepare("DELETE FROM ordens_corte WHERE id = :id AND tenant_id = :tenant_id")
-               ->execute(['id' => $id, 'tenant_id' => $tenantId]);
+                ->execute(['id' => $id, 'tenant_id' => $tenantId]);
 
             // 5. Recalcular e atualizar o Chão de Fábrica para cada variação afetada
             $stmtUpdateCorte = $db->prepare(
@@ -472,12 +474,12 @@ class OrdemCorteController extends Controller
                         ['op_id' => $ordem_producao_id, 'variante_id' => $varId]
                     );
                     if ($metaInfo) {
-                        $metaQtd = (int)$metaInfo['quantidade'];
+                        $metaQtd = (int) $metaInfo['quantidade'];
                     }
                 }
                 if ($metaQtd <= 0) {
                     $opInfo = Database::fetch("SELECT quantidade FROM ordens_producao WHERE id = :op_id", ['op_id' => $ordem_producao_id]);
-                    $metaQtd = $opInfo ? (int)$opInfo['quantidade'] : 0;
+                    $metaQtd = $opInfo ? (int) $opInfo['quantidade'] : 0;
                 }
 
                 // 5.2 Buscar total acumulado já cortado após a exclusão
@@ -522,7 +524,7 @@ class OrdemCorteController extends Controller
                     );
                 }
 
-                $totalCortado = (int)($corteInfo['total_cortado'] ?? 0);
+                $totalCortado = (int) ($corteInfo['total_cortado'] ?? 0);
 
                 // 5.3 Definir novo status do corte e costura
                 if ($totalCortado <= 0) {

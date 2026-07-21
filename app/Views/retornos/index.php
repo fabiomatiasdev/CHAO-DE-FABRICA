@@ -86,6 +86,7 @@
                 </tbody>
             </table>
         </div>
+        <?php $pagination = $paginationEnvios ?? null; $pageParamName = 'page_envios'; require __DIR__ . '/../layouts/pagination.php'; ?>
     </div>
 
     <!-- Tabela 2: Histórico de Retornos Registrados -->
@@ -151,6 +152,7 @@
                 </tbody>
             </table>
         </div>
+        <?php $pagination = $paginationRetornos ?? null; $pageParamName = 'page_retornos'; require __DIR__ . '/../layouts/pagination.php'; ?>
     </div>
 </div>
 
