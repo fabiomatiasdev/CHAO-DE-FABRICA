@@ -29,7 +29,13 @@
                     <option value="acabamento">3. Acabamento</option>
                     <option value="revisão">4. Revisão (Qualidade)</option>
                     <option value="embalagem">5. Embalagem</option>
+                    <option value="outra">+ Personalizada (Outro Processo)...</option>
                 </select>
+            </div>
+
+            <div id="container-etapa-custom" class="form-group" style="display: none; margin-bottom:0;">
+                <label for="etapa_custom" class="form-label">Nome da Etapa Personalizada *</label>
+                <input type="text" id="etapa_custom" name="etapa_custom" class="form-control" placeholder="Ex: Passadoria, Silk, Lavanderia, Bordado">
             </div>
 
             <div class="form-group" style="margin-bottom:0;">
@@ -106,21 +112,25 @@
                                     </div>
                                 </div>
                                 
-                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
-                                    <?php 
-                                    $listaEtapas = ['corte', 'costura', 'acabamento', 'revisão', 'embalagem'];
+                                 <?php 
+                                    $listaEtapasPadrao = ['corte', 'costura', 'acabamento', 'revisão', 'embalagem'];
+                                    $chavesExistentes   = array_keys($v['etapas']);
+                                    $listaEtapas = array_unique(array_merge($listaEtapasPadrao, $chavesExistentes));
                                     $etapaLabels = [
-                                        'corte' => '1. Corte',
-                                        'costura' => '2. Costura',
+                                        'corte'      => '1. Corte',
+                                        'costura'    => '2. Costura',
                                         'acabamento' => '3. Acabamento',
-                                        'revisão' => '4. Revisão',
-                                        'embalagem' => '5. Embalagem'
+                                        'revisão'    => '4. Revisão',
+                                        'embalagem'  => '5. Embalagem'
                                     ];
-                                    
+                                ?>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                                    <?php 
                                     foreach ($listaEtapas as $etNome):
                                         $etDado = $v['etapas'][$etNome] ?? ['status' => 'pendente', 'responsavel' => ''];
                                         $etStatus = $etDado['status'];
                                         $etResp = $etDado['responsavel'];
+                                        $labelExibicao = $etapaLabels[$etNome] ?? (mb_convert_case($etNome, MB_CASE_TITLE, 'UTF-8'));
                                         
                                         // Cores do Card
                                         $bgColor = '#f8fafc';
@@ -133,7 +143,7 @@
                                             $borderColor = '#bfdbfe';
                                             $textColor = '#1d4ed8';
                                             $badgeClass = 'badge-info';
-                                        } elseif ($etStatus === 'conclúido') {
+                                        } elseif ($etStatus === 'conclúido' || $etStatus === 'concluído') {
                                             $bgColor = '#f0fdf4';
                                             $borderColor = '#bbf7d0';
                                             $textColor = '#166534';
@@ -141,13 +151,13 @@
                                         }
                                     ?>
                                         <div style="background-color: <?= $bgColor ?>; border: 1px solid <?= $borderColor ?>; padding: 10px; border-radius: 6px;">
-                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                                <span style="font-size:12px; font-weight:600; color: <?= $textColor ?>;"><?= $etapaLabels[$etNome] ?></span>
-                                                <span class="badge <?= $badgeClass ?>" style="font-size:8px; padding: 1px 4px;"><?= $etStatus ?></span>
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:4px;">
+                                                <span style="font-size:12px; font-weight:600; color: <?= $textColor ?>;"><?= htmlspecialchars($labelExibicao) ?></span>
+                                                <span class="badge <?= $badgeClass ?>" style="font-size:8px; padding: 1px 4px;"><?= htmlspecialchars($etStatus) ?></span>
                                             </div>
                                             
                                             <div style="font-size:10px; color: var(--muted); min-height: 20px;">
-                                                <?php if ($etStatus === 'conclúido'): ?>
+                                                <?php if ($etStatus === 'conclúido' || $etStatus === 'concluído'): ?>
                                                     <i data-lucide="check" style="width:10px;height:10px;color:var(--success);display:inline-block;vertical-align:middle;margin-right:1px;"></i>
                                                     <span><?= htmlspecialchars($etResp ?: 'Concluído') ?></span>
                                                 <?php elseif ($etStatus === 'em andamento'): ?>
@@ -173,9 +183,21 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const selectOp = document.getElementById('ordem_producao_id');
-        const secaoVariantes = document.getElementById('secao-selecao-variantes');
-        const containerCheckboxes = document.getElementById('checkboxes-variantes-container');
+        const selectEtapa = document.getElementById('etapa');
+        const containerCustom = document.getElementById('container-etapa-custom');
+        const inputCustom = document.getElementById('etapa_custom');
+
+        selectEtapa.addEventListener('change', function() {
+            if (this.value === 'outra') {
+                containerCustom.style.display = 'block';
+                inputCustom.required = true;
+                inputCustom.focus();
+            } else {
+                containerCustom.style.display = 'none';
+                inputCustom.required = false;
+                inputCustom.value = '';
+            }
+        });
 
         selectOp.addEventListener('change', function() {
             const selectedOpt = selectOp.options[selectOp.selectedIndex];

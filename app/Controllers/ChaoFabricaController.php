@@ -200,6 +200,10 @@ class ChaoFabricaController extends Controller
         $responsavel = trim($_POST['responsavel'] ?? '');
         $variante_ids = $_POST['variante_ids'] ?? [];
 
+        if ($etapa === 'outra' && !empty($_POST['etapa_custom'])) {
+            $etapa = mb_strtolower(trim($_POST['etapa_custom']));
+        }
+
         if ($opId <= 0 || empty($etapa) || empty($status) || empty($responsavel)) {
             $this->setFlash('error', 'Todos os campos são obrigatórios para apontar produção.');
             $this->redirect('/chao-fabrica');
@@ -209,36 +213,55 @@ class ChaoFabricaController extends Controller
             $db = Database::getConnection();
             $db->beginTransaction();
 
-            // 1. Atualizar o status da etapa selecionada para as variações selecionadas
-            $stmt = $db->prepare(
+            $targets = empty($variante_ids) ? [null] : $variante_ids;
+
+            $checkStmt = $db->prepare(
+                "SELECT id FROM chao_fabrica_etapas 
+                 WHERE tenant_id = :tenant_id AND ordem_producao_id = :op_id AND etapa = :etapa 
+                   AND (produto_variante_id = :var_id OR (produto_variante_id IS NULL AND :var_id2 IS NULL))"
+            );
+
+            $insertStmt = $db->prepare(
+                "INSERT INTO chao_fabrica_etapas (tenant_id, ordem_producao_id, produto_variante_id, etapa, status, responsavel) 
+                 VALUES (:tenant_id, :op_id, :var_id, :etapa, :status, :responsavel)"
+            );
+
+            $updateStmt = $db->prepare(
                 "UPDATE chao_fabrica_etapas 
                  SET status = :status, responsavel = :responsavel 
                  WHERE tenant_id = :tenant_id 
                    AND ordem_producao_id = :op_id 
                    AND etapa = :etapa 
-                   AND (produto_variante_id = :variante_id OR (produto_variante_id IS NULL AND :variante_id2 IS NULL))"
+                   AND (produto_variante_id = :var_id OR (produto_variante_id IS NULL AND :var_id2 IS NULL))"
             );
 
-            if (empty($variante_ids)) {
-                $stmt->execute([
-                    'status' => $status,
-                    'responsavel' => $responsavel,
+            foreach ($targets as $varId) {
+                $checkStmt->execute([
                     'tenant_id' => $tenantId,
-                    'op_id' => $opId,
-                    'etapa' => $etapa,
-                    'variante_id' => null,
-                    'variante_id2' => null
+                    'op_id'     => $opId,
+                    'etapa'     => $etapa,
+                    'var_id'    => $varId,
+                    'var_id2'   => $varId
                 ]);
-            } else {
-                foreach ($variante_ids as $varId) {
-                    $stmt->execute([
-                        'status' => $status,
+
+                if (!$checkStmt->fetch()) {
+                    $insertStmt->execute([
+                        'tenant_id'   => $tenantId,
+                        'op_id'       => $opId,
+                        'var_id'      => $varId,
+                        'etapa'       => $etapa,
+                        'status'      => $status,
+                        'responsavel' => $responsavel
+                    ]);
+                } else {
+                    $updateStmt->execute([
+                        'status'      => $status,
                         'responsavel' => $responsavel,
-                        'tenant_id' => $tenantId,
-                        'op_id' => $opId,
-                        'etapa' => $etapa,
-                        'variante_id' => $varId,
-                        'variante_id2' => $varId
+                        'tenant_id'   => $tenantId,
+                        'op_id'       => $opId,
+                        'etapa'       => $etapa,
+                        'var_id'      => $varId,
+                        'var_id2'     => $varId
                     ]);
                 }
             }
