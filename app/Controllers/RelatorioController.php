@@ -326,8 +326,8 @@ class RelatorioController extends Controller
              JOIN ordens_producao op ON cq.ordem_producao_id = op.id
              JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
              WHERE cq.tenant_id = :tenant_id
-             ORDER BY cq.id DESC LIMIT :limit OFFSET :offset",
-            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offset]
+             ORDER BY cq.id DESC LIMIT {$perPage} OFFSET {$offset}",
+            ['tenant_id' => $tenantId]
         );
 
         // OPs disponíveis para inspeção (ativas ou concluídas recentemente)

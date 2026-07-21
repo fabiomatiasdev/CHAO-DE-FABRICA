@@ -46,8 +46,8 @@ class EstoqueController extends Controller
              LEFT JOIN materias_primas mp ON em.tipo_item = 'materia_prima' AND em.item_id = mp.id
              LEFT JOIN produtos_modelos pm ON em.tipo_item = 'produto_acabado' AND em.item_id = pm.id
              WHERE em.tenant_id = :tenant_id
-             ORDER BY em.id DESC LIMIT :limit OFFSET :offset",
-            ['tenant_id' => $tenantId, 'limit' => $perPage, 'offset' => $offset]
+             ORDER BY em.id DESC LIMIT {$perPage} OFFSET {$offset}",
+            ['tenant_id' => $tenantId]
         );
 
         // Carregar matérias-primas e produtos acabados
