@@ -124,6 +124,7 @@ $router->get('/calendario', [App\Controllers\CalendarioController::class, 'index
 $router->post('/colecoes/novo', [App\Controllers\CalendarioController::class, 'storeColecao'], [AuthMiddleware::class]);
 $router->get('/colecoes/excluir', [App\Controllers\CalendarioController::class, 'excluirColecao'], [AuthMiddleware::class]);
 $router->post('/tarefas/novo', [App\Controllers\CalendarioController::class, 'storeTarefa'], [AuthMiddleware::class]);
+$router->get('/tarefas/alternar', [App\Controllers\CalendarioController::class, 'alternarStatusTarefa'], [AuthMiddleware::class]);
 $router->get('/tarefas/concluir', [App\Controllers\CalendarioController::class, 'concluirTarefa'], [AuthMiddleware::class]);
 $router->get('/tarefas/excluir', [App\Controllers\CalendarioController::class, 'excluirTarefa'], [AuthMiddleware::class]);
 

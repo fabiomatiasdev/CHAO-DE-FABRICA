@@ -200,6 +200,33 @@ class CalendarioController extends Controller
         exit;
     }
 
+    public function alternarStatusTarefa(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $tenantId = $_SESSION['tenant_id'];
+        $id       = (int)($_GET['id'] ?? 0);
+
+        $tarefa = Database::fetch(
+            "SELECT status FROM cronograma_tarefas WHERE id = :id AND tenant_id = :t",
+            ['id' => $id, 't' => $tenantId]
+        );
+
+        if ($tarefa) {
+            $novoStatus = $tarefa['status'] === 'concluido' ? 'pendente' : 'concluido';
+            Database::query(
+                "UPDATE cronograma_tarefas SET status = :s WHERE id = :id AND tenant_id = :t",
+                ['s' => $novoStatus, 'id' => $id, 't' => $tenantId]
+            );
+            $_SESSION['flash_success'] = 'Status da tarefa atualizado!';
+        }
+
+        header('Location: /calendario');
+        exit;
+    }
+
     public function concluirTarefa(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -217,6 +244,7 @@ class CalendarioController extends Controller
         header('Location: /calendario');
         exit;
     }
+
 
     public function excluirTarefa(): void
     {

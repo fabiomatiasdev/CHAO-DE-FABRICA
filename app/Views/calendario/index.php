@@ -193,21 +193,21 @@ if ($mesProximo > 12) { $mesProximo = 1; $anoProximo++; }
 
                 <!-- Eventos OPs -->
                 <?php foreach ($opsDoDia as $op): ?>
-                    <div style="background: #0284c7; color: white; padding: 2px 5px; border-radius: 4px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                         title="Prazo OP #<?= $op['id'] ?> - <?= htmlspecialchars($op['referencia']) ?>">
+                    <div onclick='verDetalhesOP(<?= json_encode($op) ?>)' 
+                         style="background: #0284c7; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;"
+                         title="Clique para ver detalhes da OP #<?= $op['id'] ?>">
                         🔵 OP #<?= $op['id'] ?> - <?= htmlspecialchars($op['referencia']) ?>
                     </div>
                 <?php endforeach; ?>
 
                 <!-- Eventos Tarefas -->
                 <?php foreach ($tarefasDoDia as $t): ?>
-                    <div style="background: <?= $t['status'] === 'concluido' ? '#16a34a' : '#f59e0b' ?>; color: white; padding: 2px 5px; border-radius: 4px; font-size: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div onclick='verDetalhesTarefa(<?= json_encode($t) ?>)' 
+                         style="background: <?= $t['status'] === 'concluido' ? '#16a34a' : '#f59e0b' ?>; color: white; padding: 3px 6px; border-radius: 4px; font-size: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                         title="Clique para ver ou alternar status da tarefa">
                         <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; <?= $t['status'] === 'concluido' ? 'text-decoration: line-through;' : '' ?>">
                             <?= $t['status'] === 'concluido' ? '✓' : '📌' ?> <?= htmlspecialchars($t['titulo']) ?>
                         </span>
-                        <?php if ($t['status'] !== 'concluido'): ?>
-                            <a href="/tarefas/concluir?id=<?= $t['id'] ?>" style="color: white; text-decoration: none; margin-left: 4px;" title="Concluir Tarefa">✓</a>
-                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -345,6 +345,57 @@ if ($mesProximo > 12) { $mesProximo = 1; $anoProximo++; }
     </div>
 </div>
 
+<!-- MODAL VER DETALHES TAREFA -->
+<div id="modalDetalhesTarefa" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; border-radius: 8px; max-width: 500px; width: 100%; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;" id="detalheTarefaTitulo">Detalhes da Tarefa</h3>
+            <button type="button" onclick="fecharModalDetalhesTarefa()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #334155;">
+            <div>Status: <span id="detalheTarefaStatusBadge"></span></div>
+            <div>Data de Execução: <strong id="detalheTarefaData"></strong></div>
+            <div>Responsável: <strong id="detalheTarefaResponsavel"></strong></div>
+            <div style="border-top: 1px solid var(--border); padding-top: 10px;">
+                <span style="font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Descrição</span>
+                <p id="detalheTarefaDescricao" style="margin-top: 4px; color: #475569; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;"></p>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px; flex-wrap: wrap;">
+            <a id="btnAlternarStatusTarefa" href="#" class="btn btn-primary" style="font-size: 13px;"></a>
+            <div style="display: flex; gap: 8px;">
+                <a id="btnExcluirTarefa" href="#" class="btn btn-secondary" style="color: var(--danger); font-size: 13px;" onclick="return confirm('Deseja excluir esta tarefa?');">Excluir</a>
+                <button type="button" class="btn btn-secondary" onclick="fecharModalDetalhesTarefa()">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VER DETALHES OP -->
+<div id="modalDetalhesOP" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; border-radius: 8px; max-width: 500px; width: 100%; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;" id="detalheOPTitulo">Detalhes da Ordem de Produção</h3>
+            <button type="button" onclick="fecharModalDetalhesOP()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: #334155;">
+            <div>Modelo / Referência: <strong id="detalheOPModelo" style="color: var(--primary);"></strong></div>
+            <div>Quantidade de Peças: <strong id="detalheOPQtd"></strong></div>
+            <div>Prazo de Entrega: <strong id="detalheOPPrazo"></strong></div>
+            <div>Status Atual: <span id="detalheOPStatusBadge" class="tenant-badge"></span></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+            <a id="btnDiagnosticoOP" href="#" class="btn btn-secondary" style="font-size: 13px;">⚡ Diagnóstico OP</a>
+            <a id="btnEditarOP" href="#" class="btn btn-primary" style="font-size: 13px;">Editar OP</a>
+            <button type="button" class="btn btn-secondary" onclick="fecharModalDetalhesOP()">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function abrirModalColecao() {
         document.getElementById('modalColecao').style.display = 'flex';
@@ -357,6 +408,52 @@ if ($mesProximo > 12) { $mesProximo = 1; $anoProximo++; }
     }
     function fecharModalTarefa() {
         document.getElementById('modalTarefa').style.display = 'none';
+    }
+
+    function verDetalhesTarefa(t) {
+        document.getElementById('detalheTarefaTitulo').innerText = t.titulo;
+        document.getElementById('detalheTarefaData').innerText = t.data_execucao ? t.data_execucao.split('-').reverse().join('/') : '-';
+        document.getElementById('detalheTarefaResponsavel').innerText = t.responsavel || 'Não atribuído';
+        document.getElementById('detalheTarefaDescricao').innerText = t.descricao || 'Sem descrição cadastrada.';
+        
+        const badge = document.getElementById('detalheTarefaStatusBadge');
+        const btnAlternar = document.getElementById('btnAlternarStatusTarefa');
+
+        if (t.status === 'concluido') {
+            badge.innerHTML = '<span class="tenant-badge" style="background:#dcfce7; color:#15803d; border-color:#bbf7d0;">✓ Concluída</span>';
+            btnAlternar.innerText = '↺ Marcar como Não Feito (Pendente)';
+            btnAlternar.className = 'btn btn-secondary';
+        } else {
+            badge.innerHTML = '<span class="tenant-badge" style="background:#fef3c7; color:#b45309; border-color:#fde68a;">📌 Pendente</span>';
+            btnAlternar.innerText = '✓ Marcar como Feito (Concluído)';
+            btnAlternar.className = 'btn btn-primary';
+        }
+
+        btnAlternar.href = '/tarefas/alternar?id=' + t.id;
+        document.getElementById('btnExcluirTarefa').href = '/tarefas/excluir?id=' + t.id;
+        
+        document.getElementById('modalDetalhesTarefa').style.display = 'flex';
+    }
+
+    function fecharModalDetalhesTarefa() {
+        document.getElementById('modalDetalhesTarefa').style.display = 'none';
+    }
+
+    function verDetalhesOP(op) {
+        document.getElementById('detalheOPTitulo').innerText = 'OP #' + op.id;
+        document.getElementById('detalheOPModelo').innerText = op.referencia + ' - ' + op.modelo_nome;
+        document.getElementById('detalheOPQtd').innerText = parseInt(op.quantidade).toLocaleString('pt-BR') + ' pçs';
+        document.getElementById('detalheOPPrazo').innerText = op.prazo ? op.prazo.split('-').reverse().join('/') : '-';
+        document.getElementById('detalheOPStatusBadge').innerText = op.status;
+        
+        document.getElementById('btnDiagnosticoOP').href = '/relatorios/diagnostico-op?op_id=' + op.id;
+        document.getElementById('btnEditarOP').href = '/ops/editar?id=' + op.id;
+
+        document.getElementById('modalDetalhesOP').style.display = 'flex';
+    }
+
+    function fecharModalDetalhesOP() {
+        document.getElementById('modalDetalhesOP').style.display = 'none';
     }
 </script>
 
