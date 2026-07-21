@@ -25,16 +25,16 @@ class EstoqueController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
-        $total = (int)(Database::fetch(
+        $total = (int) (Database::fetch(
             "SELECT COUNT(*) as total FROM estoque_movimentacoes WHERE tenant_id = :tenant_id",
             ['tenant_id' => $tenantId]
         )['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
         // Buscar histórico de ajustes paginado
         $ajustes = Database::fetchAll(
@@ -79,13 +79,13 @@ class EstoqueController extends Controller
         );
 
         $this->render('estoque/ajuste', [
-            'title'         => 'Ajuste de Estoque (Insumos e Acabados)',
-            'subtitle'      => 'Realize entradas e saídas manuais selecionando o local de armazenamento',
-            'ajustes'       => $ajustes,
-            'materias'      => $materias,
-            'produtos'      => $produtos,
+            'title' => 'Ajuste de Estoque (Insumos e Acabados)',
+            'subtitle' => 'Realize entradas e saídas manuais selecionando o local de armazenamento',
+            'ajustes' => $ajustes,
+            'materias' => $materias,
+            'produtos' => $produtos,
             'locaisEstoque' => $locaisEstoque,
-            'pagination'    => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 
@@ -110,9 +110,9 @@ class EstoqueController extends Controller
         $userId = $_SESSION['user_id'] ?? null;
 
         $tipo_item = $_POST['tipo_item'] ?? '';
-        $item_id = (int)($_POST['item_id'] ?? 0);
-        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int)$_POST['local_estoque_id'] : null;
-        $quantidade = (float)($_POST['quantidade'] ?? 0.00);
+        $item_id = (int) ($_POST['item_id'] ?? 0);
+        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int) $_POST['local_estoque_id'] : null;
+        $quantidade = (float) ($_POST['quantidade'] ?? 0.00);
         $tipo_movimentacao = $_POST['tipo_movimentacao'] ?? '';
         $motivo = trim($_POST['motivo'] ?? '');
 
@@ -144,16 +144,16 @@ class EstoqueController extends Controller
             // 2. Se for matéria-prima, atualizar fisicamente o estoque na tabela materias_primas
             if ($tipo_item === 'materia_prima') {
                 $op = ($tipo_movimentacao === 'entrada') ? '+' : '-';
-                
+
                 $db->prepare(
                     "UPDATE materias_primas 
                      SET estoque_atual = estoque_atual {$op} :quantidade 
                      WHERE tenant_id = :tenant_id AND id = :id"
                 )->execute([
-                    'quantidade' => $quantidade,
-                    'tenant_id' => $tenantId,
-                    'id' => $item_id
-                ]);
+                            'quantidade' => $quantidade,
+                            'tenant_id' => $tenantId,
+                            'id' => $item_id
+                        ]);
             }
 
             $db->commit();

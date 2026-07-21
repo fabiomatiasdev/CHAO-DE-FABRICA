@@ -17,25 +17,25 @@ class MateriaPrimaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca    = trim($_GET['busca'] ?? '');
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $busca = trim($_GET['busca'] ?? '');
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
         $whereClause = 'WHERE tenant_id = :tenant_id';
-        $params      = ['tenant_id' => $tenantId];
+        $params = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
             $whereClause .= ' AND (nome LIKE :busca OR fornecedor LIKE :busca2)';
-            $params['busca']  = '%' . $busca . '%';
+            $params['busca'] = '%' . $busca . '%';
             $params['busca2'] = '%' . $busca . '%';
         }
 
-        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM materias_primas $whereClause", $params)['total'] ?? 0);
+        $total = (int) (Database::fetch("SELECT COUNT(*) as total FROM materias_primas $whereClause", $params)['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
-        $params['limit']  = $perPage;
+        $params['limit'] = $perPage;
         $params['offset'] = $offset;
 
         $itens = Database::fetchAll(
@@ -44,10 +44,10 @@ class MateriaPrimaController extends Controller
         );
 
         $this->render('materias/index', [
-            'title'      => 'Matérias-Primas',
-            'subtitle'   => 'Cadastre e acompanhe o estoque de tecidos, aviamentos, botões, zíperes, etc.',
-            'itens'      => $itens,
-            'busca'      => $busca,
+            'title' => 'Matérias-Primas',
+            'subtitle' => 'Cadastre e acompanhe o estoque de tecidos, aviamentos, botões, zíperes, etc.',
+            'itens' => $itens,
+            'busca' => $busca,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -79,10 +79,10 @@ class MateriaPrimaController extends Controller
 
         $nome = trim($_POST['nome'] ?? '');
         $unidade_medida = trim($_POST['unidade_medida'] ?? 'M');
-        $custo_unitario = (float)($_POST['custo_unitario'] ?? 0.0000);
+        $custo_unitario = (float) ($_POST['custo_unitario'] ?? 0.0000);
         $fornecedor = trim($_POST['fornecedor'] ?? '');
-        $estoque_atual = (float)($_POST['estoque_atual'] ?? 0.00);
-        $estoque_minimo = (float)($_POST['estoque_minimo'] ?? 0.00);
+        $estoque_atual = (float) ($_POST['estoque_atual'] ?? 0.00);
+        $estoque_minimo = (float) ($_POST['estoque_minimo'] ?? 0.00);
 
         if (empty($nome) || empty($unidade_medida)) {
             $this->setFlash('error', 'Nome e Unidade de Medida são obrigatórios.');
@@ -145,7 +145,7 @@ class MateriaPrimaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $item = Database::fetch(
             "SELECT * FROM materias_primas WHERE tenant_id = :tenant_id AND id = :id",
@@ -175,13 +175,13 @@ class MateriaPrimaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $nome = trim($_POST['nome'] ?? '');
         $unidade_medida = trim($_POST['unidade_medida'] ?? 'M');
-        $custo_unitario = (float)($_POST['custo_unitario'] ?? 0.0000);
+        $custo_unitario = (float) ($_POST['custo_unitario'] ?? 0.0000);
         $fornecedor = trim($_POST['fornecedor'] ?? '');
-        $estoque_minimo = (float)($_POST['estoque_minimo'] ?? 0.00);
+        $estoque_minimo = (float) ($_POST['estoque_minimo'] ?? 0.00);
 
         // Obs: Estoque atual não deve ser atualizado diretamente aqui para evitar furos de estoque.
         // Deve ser ajustado na tela de ajustes de estoque.
@@ -226,7 +226,7 @@ class MateriaPrimaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         try {
             Database::query(

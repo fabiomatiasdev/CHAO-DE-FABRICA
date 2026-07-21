@@ -17,32 +17,32 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca    = trim($_GET['busca'] ?? '');
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $busca = trim($_GET['busca'] ?? '');
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
-        $joinClause  = "JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
+        $joinClause = "JOIN produtos_modelos pm ON op.produto_modelo_id = pm.id
                  LEFT JOIN oficinas_faccoes of ON op.oficina_faccao_id = of.id
                  LEFT JOIN pedidos_venda pv ON op.pedido_venda_id = pv.id";
         $whereClause = 'WHERE op.tenant_id = :tenant_id';
-        $params      = ['tenant_id' => $tenantId];
+        $params = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
             $whereClause .= ' AND (pm.nome LIKE :busca OR pm.referencia LIKE :busca2 OR of.nome LIKE :busca3)';
-            $params['busca']  = '%' . $busca . '%';
+            $params['busca'] = '%' . $busca . '%';
             $params['busca2'] = '%' . $busca . '%';
             $params['busca3'] = '%' . $busca . '%';
         }
 
-        $total      = (int)(Database::fetch(
+        $total = (int) (Database::fetch(
             "SELECT COUNT(*) as total FROM ordens_producao op $joinClause $whereClause",
             $params
         )['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
-        $params['limit']  = $perPage;
+        $params['limit'] = $perPage;
         $params['offset'] = $offset;
 
         $ops = Database::fetchAll(
@@ -64,10 +64,10 @@ class OrdemProducaoController extends Controller
         }
 
         $this->render('ops/index', [
-            'title'      => 'Ordens de Produção (OP)',
-            'subtitle'   => 'Planeje, distribua para oficinas e acompanhe a fabricação de lotes de roupas',
-            'ops'        => $ops,
-            'busca'      => $busca,
+            'title' => 'Ordens de Produção (OP)',
+            'subtitle' => 'Planeje, distribua para oficinas e acompanhe a fabricação de lotes de roupas',
+            'ops' => $ops,
+            'busca' => $busca,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -124,7 +124,7 @@ class OrdemProducaoController extends Controller
             $mId = $frow['produto_modelo_id'];
             if (!isset($fichasModelos[$mId])) {
                 $fichasModelos[$mId] = [
-                    'tempo_padrao' => (float)$frow['tempo_padrao'],
+                    'tempo_padrao' => (float) $frow['tempo_padrao'],
                     'insumos' => []
                 ];
             }
@@ -132,7 +132,7 @@ class OrdemProducaoController extends Controller
                 $fichasModelos[$mId]['insumos'][] = [
                     'materia_prima_id' => $frow['materia_prima_id'],
                     'nome' => $frow['materia_nome'],
-                    'quantidade' => (float)$frow['quantidade'],
+                    'quantidade' => (float) $frow['quantidade'],
                     'unidade_medida' => $frow['unidade_medida']
                 ];
             }
@@ -168,23 +168,23 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $pedido_venda_id = !empty($_POST['pedido_venda_id']) ? (int)$_POST['pedido_venda_id'] : null;
-        $produto_modelo_id = (int)($_POST['produto_modelo_id'] ?? 0);
-        
+        $pedido_venda_id = !empty($_POST['pedido_venda_id']) ? (int) $_POST['pedido_venda_id'] : null;
+        $produto_modelo_id = (int) ($_POST['produto_modelo_id'] ?? 0);
+
         $variante_ids = $_POST['variante_ids'] ?? [];
         $variante_quantidades = $_POST['variante_quantidades'] ?? [];
-        
-        $oficina_faccao_id = !empty($_POST['oficina_faccao_id']) ? (int)$_POST['oficina_faccao_id'] : null;
-        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int)$_POST['local_estoque_id'] : null;
-        $operadores = (int)($_POST['operadores'] ?? 1);
+
+        $oficina_faccao_id = !empty($_POST['oficina_faccao_id']) ? (int) $_POST['oficina_faccao_id'] : null;
+        $local_estoque_id = !empty($_POST['local_estoque_id']) ? (int) $_POST['local_estoque_id'] : null;
+        $operadores = (int) ($_POST['operadores'] ?? 1);
         $prazo = $_POST['prazo'] ?? '';
         $status = $_POST['status'] ?? 'aberta';
 
         $quantidade = 0;
         $variantesSalvar = [];
         foreach ($variante_ids as $index => $vId) {
-            $vId = (int)$vId;
-            $qtd = (int)($variante_quantidades[$index] ?? 0);
+            $vId = (int) $vId;
+            $qtd = (int) ($variante_quantidades[$index] ?? 0);
             if ($vId > 0 && $qtd > 0) {
                 $quantidade += $qtd;
                 $variantesSalvar[] = [
@@ -278,7 +278,7 @@ class OrdemProducaoController extends Controller
             // 3. Se estiver vinculada a um pedido de venda, atualizar o status do pedido para "em produção"
             if ($pedido_venda_id) {
                 $db->prepare("UPDATE pedidos_venda SET status = 'em produção' WHERE id = :pedido_id")
-                   ->execute(['pedido_id' => $pedido_venda_id]);
+                    ->execute(['pedido_id' => $pedido_venda_id]);
             }
 
             $db->commit();
@@ -303,7 +303,7 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $op = Database::fetch(
             "SELECT * FROM ordens_producao WHERE tenant_id = :tenant_id AND id = :id",
@@ -350,7 +350,7 @@ class OrdemProducaoController extends Controller
             $mId = $frow['produto_modelo_id'];
             if (!isset($fichasModelos[$mId])) {
                 $fichasModelos[$mId] = [
-                    'tempo_padrao' => (float)$frow['tempo_padrao'],
+                    'tempo_padrao' => (float) $frow['tempo_padrao'],
                     'insumos' => []
                 ];
             }
@@ -358,7 +358,7 @@ class OrdemProducaoController extends Controller
                 $fichasModelos[$mId]['insumos'][] = [
                     'materia_prima_id' => $frow['materia_prima_id'],
                     'nome' => $frow['materia_nome'],
-                    'quantidade' => (float)$frow['quantidade'],
+                    'quantidade' => (float) $frow['quantidade'],
                     'unidade_medida' => $frow['unidade_medida']
                 ];
             }
@@ -401,24 +401,24 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
-        $pedido_venda_id = !empty($_POST['pedido_venda_id']) ? (int)$_POST['pedido_venda_id'] : null;
-        $produto_modelo_id = (int)($_POST['produto_modelo_id'] ?? 0);
-        $oficina_faccao_id = !empty($_POST['oficina_faccao_id']) ? (int)$_POST['oficina_faccao_id'] : null;
-        
+        $pedido_venda_id = !empty($_POST['pedido_venda_id']) ? (int) $_POST['pedido_venda_id'] : null;
+        $produto_modelo_id = (int) ($_POST['produto_modelo_id'] ?? 0);
+        $oficina_faccao_id = !empty($_POST['oficina_faccao_id']) ? (int) $_POST['oficina_faccao_id'] : null;
+
         $variante_ids = $_POST['variante_ids'] ?? [];
         $variante_quantidades = $_POST['variante_quantidades'] ?? [];
-        
-        $operadores = (int)($_POST['operadores'] ?? 1);
+
+        $operadores = (int) ($_POST['operadores'] ?? 1);
         $prazo = $_POST['prazo'] ?? '';
         $status = $_POST['status'] ?? 'aberta';
 
         $quantidade = 0;
         $variantesSalvar = [];
         foreach ($variante_ids as $index => $vId) {
-            $vId = (int)$vId;
-            $qtd = (int)($variante_quantidades[$index] ?? 0);
+            $vId = (int) $vId;
+            $qtd = (int) ($variante_quantidades[$index] ?? 0);
             if ($vId > 0 && $qtd > 0) {
                 $quantidade += $qtd;
                 $variantesSalvar[] = [
@@ -445,9 +445,9 @@ class OrdemProducaoController extends Controller
 
             if ($opOriginal) {
                 $statusAnterior = $opOriginal['status'];
-                $baixadoAnterior = (int)$opOriginal['estoque_baixado'];
-                $modeloAnterior = (int)$opOriginal['produto_modelo_id'];
-                $qtdAnterior = (int)$opOriginal['quantidade'];
+                $baixadoAnterior = (int) $opOriginal['estoque_baixado'];
+                $modeloAnterior = (int) $opOriginal['produto_modelo_id'];
+                $qtdAnterior = (int) $opOriginal['quantidade'];
 
                 // 1. Se já estava baixado, mas o status mudou (não é mais em andamento) ou mudou modelo/quantidade: estornar estoque anterior
                 if ($baixadoAnterior === 1 && ($status !== 'em andamento' || $produto_modelo_id !== $modeloAnterior || $quantidade !== $qtdAnterior)) {
@@ -493,7 +493,7 @@ class OrdemProducaoController extends Controller
 
             // Deletar anteriores
             $db->prepare("DELETE FROM ordens_producao_variantes WHERE ordem_producao_id = :op_id AND tenant_id = :tenant_id")
-               ->execute(['op_id' => $id, 'tenant_id' => $tenantId]);
+                ->execute(['op_id' => $id, 'tenant_id' => $tenantId]);
 
             // Inserir novas
             $stmtVar = $db->prepare(
@@ -516,7 +516,7 @@ class OrdemProducaoController extends Controller
             foreach ($currentPivotIds as $oldId) {
                 if (!in_array($oldId, $newVarIds)) {
                     $db->prepare("DELETE FROM chao_fabrica_etapas WHERE ordem_producao_id = :op_id AND produto_variante_id = :var_id")
-                       ->execute(['op_id' => $id, 'var_id' => $oldId]);
+                        ->execute(['op_id' => $id, 'var_id' => $oldId]);
                 }
             }
 
@@ -544,19 +544,19 @@ class OrdemProducaoController extends Controller
                 // Voltar o antigo para pendente
                 if ($opOriginal['pedido_venda_id']) {
                     $db->prepare("UPDATE pedidos_venda SET status = 'pendente' WHERE id = :pedido_id")
-                       ->execute(['pedido_id' => $opOriginal['pedido_venda_id']]);
+                        ->execute(['pedido_id' => $opOriginal['pedido_venda_id']]);
                 }
                 // Definir o novo para em produção
                 if ($pedido_venda_id) {
                     $db->prepare("UPDATE pedidos_venda SET status = 'em produção' WHERE id = :pedido_id")
-                       ->execute(['pedido_id' => $pedido_venda_id]);
+                        ->execute(['pedido_id' => $pedido_venda_id]);
                 }
             }
 
             // Se OP foi concluída, e existe pedido vinculado, atualizar pedido para "entregue"
             if ($status === 'concluída' && $pedido_venda_id) {
                 $db->prepare("UPDATE pedidos_venda SET status = 'entregue' WHERE id = :pedido_id")
-                   ->execute(['pedido_id' => $pedido_venda_id]);
+                    ->execute(['pedido_id' => $pedido_venda_id]);
             }
 
             $db->commit();
@@ -581,7 +581,7 @@ class OrdemProducaoController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         try {
             $db = Database::getConnection();
@@ -594,18 +594,18 @@ class OrdemProducaoController extends Controller
 
             if ($op) {
                 // Se o estoque foi baixado, estornar antes de deletar
-                if ((int)$op['estoque_baixado'] === 1) {
-                    $this->estornarEstoqueOP($db, $tenantId, $id, (int)$op['produto_modelo_id'], (int)$op['quantidade']);
+                if ((int) $op['estoque_baixado'] === 1) {
+                    $this->estornarEstoqueOP($db, $tenantId, $id, (int) $op['produto_modelo_id'], (int) $op['quantidade']);
                 }
 
                 // Deletar
                 $db->prepare("DELETE FROM ordens_producao WHERE id = :id AND tenant_id = :tenant_id")
-                   ->execute(['id' => $id, 'tenant_id' => $tenantId]);
+                    ->execute(['id' => $id, 'tenant_id' => $tenantId]);
 
                 // Se tinha pedido de venda vinculado, voltar status para pendente
                 if ($op['pedido_venda_id']) {
                     $db->prepare("UPDATE pedidos_venda SET status = 'pendente' WHERE id = :pedido_id")
-                       ->execute(['pedido_id' => $op['pedido_venda_id']]);
+                        ->execute(['pedido_id' => $op['pedido_venda_id']]);
                 }
 
                 $db->commit();
@@ -653,8 +653,8 @@ class OrdemProducaoController extends Controller
         );
 
         foreach ($insumos as $ins) {
-            $mId = (int)$ins['materia_prima_id'];
-            $consumoTotal = (float)$ins['quantidade'] * $quantidadeOP;
+            $mId = (int) $ins['materia_prima_id'];
+            $consumoTotal = (float) $ins['quantidade'] * $quantidadeOP;
 
             if ($mId > 0 && $consumoTotal > 0) {
                 // Atualiza estoque físico
@@ -676,7 +676,7 @@ class OrdemProducaoController extends Controller
         }
 
         $db->prepare("UPDATE ordens_producao SET estoque_baixado = 1 WHERE id = :id AND tenant_id = :tenant_id")
-           ->execute(['id' => $opId, 'tenant_id' => $tenantId]);
+            ->execute(['id' => $opId, 'tenant_id' => $tenantId]);
     }
 
     /**
@@ -708,8 +708,8 @@ class OrdemProducaoController extends Controller
         );
 
         foreach ($insumos as $ins) {
-            $mId = (int)$ins['materia_prima_id'];
-            $consumoTotal = (float)$ins['quantidade'] * $quantidadeOP;
+            $mId = (int) $ins['materia_prima_id'];
+            $consumoTotal = (float) $ins['quantidade'] * $quantidadeOP;
 
             if ($mId > 0 && $consumoTotal > 0) {
                 // Estorna estoque físico
@@ -731,6 +731,6 @@ class OrdemProducaoController extends Controller
         }
 
         $db->prepare("UPDATE ordens_producao SET estoque_baixado = 0 WHERE id = :id AND tenant_id = :tenant_id")
-           ->execute(['id' => $opId, 'tenant_id' => $tenantId]);
+            ->execute(['id' => $opId, 'tenant_id' => $tenantId]);
     }
 }

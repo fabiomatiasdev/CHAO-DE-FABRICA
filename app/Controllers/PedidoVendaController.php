@@ -17,27 +17,27 @@ class PedidoVendaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca    = trim($_GET['busca'] ?? '');
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $busca = trim($_GET['busca'] ?? '');
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
-        $joinClause  = 'JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id';
+        $joinClause = 'JOIN produtos_modelos pm ON pv.produto_modelo_id = pm.id';
         $whereClause = 'WHERE pv.tenant_id = :tenant_id';
-        $params      = ['tenant_id' => $tenantId];
+        $params = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
             $whereClause .= ' AND (pv.cliente LIKE :busca OR pm.nome LIKE :busca2 OR pm.referencia LIKE :busca3)';
-            $params['busca']  = '%' . $busca . '%';
+            $params['busca'] = '%' . $busca . '%';
             $params['busca2'] = '%' . $busca . '%';
             $params['busca3'] = '%' . $busca . '%';
         }
 
-        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM pedidos_venda pv $joinClause $whereClause", $params)['total'] ?? 0);
+        $total = (int) (Database::fetch("SELECT COUNT(*) as total FROM pedidos_venda pv $joinClause $whereClause", $params)['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
-        $params['limit']  = $perPage;
+        $params['limit'] = $perPage;
         $params['offset'] = $offset;
 
         $pedidos = Database::fetchAll(
@@ -46,10 +46,10 @@ class PedidoVendaController extends Controller
         );
 
         $this->render('pedidos/index', [
-            'title'      => 'Pedidos de Venda',
-            'subtitle'   => 'Cadastre e acompanhe os pedidos comerciais e prazos de entrega acordados',
-            'pedidos'    => $pedidos,
-            'busca'      => $busca,
+            'title' => 'Pedidos de Venda',
+            'subtitle' => 'Cadastre e acompanhe os pedidos comerciais e prazos de entrega acordados',
+            'pedidos' => $pedidos,
+            'busca' => $busca,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -93,8 +93,8 @@ class PedidoVendaController extends Controller
 
         $tenantId = $_SESSION['tenant_id'];
         $cliente = trim($_POST['cliente'] ?? '');
-        $produto_modelo_id = (int)($_POST['produto_modelo_id'] ?? 0);
-        $quantidade = (int)($_POST['quantidade'] ?? 0);
+        $produto_modelo_id = (int) ($_POST['produto_modelo_id'] ?? 0);
+        $quantidade = (int) ($_POST['quantidade'] ?? 0);
         $tamanho = trim($_POST['tamanho'] ?? '');
         $prazo_entrega = $_POST['prazo_entrega'] ?? '';
         $status = $_POST['status'] ?? 'pendente';
@@ -137,7 +137,7 @@ class PedidoVendaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $pedido = Database::fetch(
             "SELECT * FROM pedidos_venda WHERE tenant_id = :tenant_id AND id = :id",
@@ -176,11 +176,11 @@ class PedidoVendaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $cliente = trim($_POST['cliente'] ?? '');
-        $produto_modelo_id = (int)($_POST['produto_modelo_id'] ?? 0);
-        $quantidade = (int)($_POST['quantidade'] ?? 0);
+        $produto_modelo_id = (int) ($_POST['produto_modelo_id'] ?? 0);
+        $quantidade = (int) ($_POST['quantidade'] ?? 0);
         $tamanho = trim($_POST['tamanho'] ?? '');
         $prazo_entrega = $_POST['prazo_entrega'] ?? '';
         $status = $_POST['status'] ?? 'pendente';
@@ -229,7 +229,7 @@ class PedidoVendaController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         try {
             Database::query(

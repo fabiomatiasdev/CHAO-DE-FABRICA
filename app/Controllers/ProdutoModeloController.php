@@ -17,26 +17,26 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $busca    = trim($_GET['busca'] ?? '');
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $busca = trim($_GET['busca'] ?? '');
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
         $whereClause = 'WHERE tenant_id = :tenant_id';
-        $params      = ['tenant_id' => $tenantId];
+        $params = ['tenant_id' => $tenantId];
 
         if (!empty($busca)) {
             $whereClause .= ' AND (nome LIKE :busca OR referencia LIKE :busca2 OR categoria LIKE :busca3)';
-            $params['busca']  = '%' . $busca . '%';
+            $params['busca'] = '%' . $busca . '%';
             $params['busca2'] = '%' . $busca . '%';
             $params['busca3'] = '%' . $busca . '%';
         }
 
-        $total      = (int)(Database::fetch("SELECT COUNT(*) as total FROM produtos_modelos $whereClause", $params)['total'] ?? 0);
+        $total = (int) (Database::fetch("SELECT COUNT(*) as total FROM produtos_modelos $whereClause", $params)['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
-        $params['limit']  = $perPage;
+        $params['limit'] = $perPage;
         $params['offset'] = $offset;
 
         $modelos = Database::fetchAll(
@@ -45,10 +45,10 @@ class ProdutoModeloController extends Controller
         );
 
         $this->render('produtos/index', [
-            'title'      => 'Modelos de Produtos',
-            'subtitle'   => 'Cadastre e gerencie a grade de modelos de roupas e tamanhos',
-            'modelos'    => $modelos,
-            'busca'      => $busca,
+            'title' => 'Modelos de Produtos',
+            'subtitle' => 'Cadastre e gerencie a grade de modelos de roupas e tamanhos',
+            'modelos' => $modelos,
+            'busca' => $busca,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -151,10 +151,12 @@ class ProdutoModeloController extends Controller
 
             foreach ($variantes as $v) {
                 $cName = trim($v['cor']);
-                if (empty($cName)) continue;
+                if (empty($cName))
+                    continue;
                 foreach ($v['tamanhos'] as $t) {
                     $tName = trim($t);
-                    if (empty($tName)) continue;
+                    if (empty($tName))
+                        continue;
 
                     $stmtVariante->execute([
                         'tenant_id' => $tenantId,
@@ -187,7 +189,7 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $modelo = Database::fetch(
             "SELECT * FROM produtos_modelos WHERE tenant_id = :tenant_id AND id = :id",
@@ -227,7 +229,7 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         $nome = trim($_POST['nome'] ?? '');
         $referencia = trim($_POST['referencia'] ?? '');
@@ -333,10 +335,12 @@ class ProdutoModeloController extends Controller
 
             foreach ($variantes as $v) {
                 $cName = trim($v['cor']);
-                if (empty($cName)) continue;
+                if (empty($cName))
+                    continue;
                 foreach ($v['tamanhos'] as $t) {
                     $tName = trim($t);
-                    if (empty($tName)) continue;
+                    if (empty($tName))
+                        continue;
 
                     $key = "{$cName}-{$tName}";
                     $chavesEnviadas[] = $key;
@@ -359,7 +363,7 @@ class ProdutoModeloController extends Controller
 
             foreach ($variantesExistentesMap as $key => $ve) {
                 if (!in_array($key, $chavesEnviadas)) {
-                    if ((int)$ve['estoque_atual'] === 0) {
+                    if ((int) $ve['estoque_atual'] === 0) {
                         $stmtDeleteVar->execute([
                             'id' => $ve['id'],
                             'tenant_id' => $tenantId
@@ -390,7 +394,7 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         try {
             // Deletar imagem associada se houver
@@ -458,8 +462,8 @@ class ProdutoModeloController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $varianteId = (int)($_POST['variante_id'] ?? 0);
-        $quantidade = (int)($_POST['quantidade'] ?? 0);
+        $varianteId = (int) ($_POST['variante_id'] ?? 0);
+        $quantidade = (int) ($_POST['quantidade'] ?? 0);
         $tipo = $_POST['tipo_movimentacao'] ?? 'entrada';
         $motivo = trim($_POST['motivo'] ?? '');
         $userId = $_SESSION['user_id'] ?? null;
@@ -496,20 +500,20 @@ class ProdutoModeloController extends Controller
 
             // 1. Atualizar estoque
             $db->prepare("UPDATE produtos_variantes SET estoque_atual = :estoque WHERE id = :id AND tenant_id = :tenant_id")
-               ->execute(['estoque' => $novoEstoque, 'id' => $varianteId, 'tenant_id' => $tenantId]);
+                ->execute(['estoque' => $novoEstoque, 'id' => $varianteId, 'tenant_id' => $tenantId]);
 
             // 2. Gravar movimentação de estoque
             $db->prepare(
                 "INSERT INTO estoque_movimentacoes (tenant_id, tipo_item, item_id, quantidade, tipo_movimentacao, motivo, usuario_id) 
                  VALUES (:tenant_id, 'produto_variante', :item_id, :quantidade, :tipo, :motivo, :usuario_id)"
             )->execute([
-                'tenant_id' => $tenantId,
-                'item_id' => $varianteId,
-                'quantidade' => $quantidade,
-                'tipo' => $tipo,
-                'motivo' => "Ajuste Manual: " . $motivo,
-                'usuario_id' => $userId
-            ]);
+                        'tenant_id' => $tenantId,
+                        'item_id' => $varianteId,
+                        'quantidade' => $quantidade,
+                        'tipo' => $tipo,
+                        'motivo' => "Ajuste Manual: " . $motivo,
+                        'usuario_id' => $userId
+                    ]);
 
             $db->commit();
             $this->setFlash('success', 'Estoque de produto acabado ajustado com sucesso.');

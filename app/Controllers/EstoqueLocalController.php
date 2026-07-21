@@ -17,16 +17,16 @@ class EstoqueLocalController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
-        $total      = (int)(Database::fetch(
+        $total = (int) (Database::fetch(
             "SELECT COUNT(*) as total FROM locais_estoque WHERE tenant_id = :tenant_id",
             ['tenant_id' => $tenantId]
         )['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
         $locais = Database::fetchAll(
             "SELECT * FROM locais_estoque WHERE tenant_id = :tenant_id ORDER BY id DESC LIMIT :limit OFFSET :offset",
@@ -34,9 +34,9 @@ class EstoqueLocalController extends Controller
         );
 
         $this->render('estoque_locais/index', [
-            'title'      => 'Locais de Estoque (Armazenadores)',
-            'subtitle'   => 'Cadastre e gerencie os depósitos e locais de armazenagem para insumos e produtos acabados',
-            'locais'     => $locais,
+            'title' => 'Locais de Estoque (Armazenadores)',
+            'subtitle' => 'Cadastre e gerencie os depósitos e locais de armazenagem para insumos e produtos acabados',
+            'locais' => $locais,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -66,8 +66,8 @@ class EstoqueLocalController extends Controller
              VALUES (:tenant_id, :nome, :tipo, :descricao, 'ativo')",
             [
                 'tenant_id' => $tenantId,
-                'nome'      => $nome,
-                'tipo'      => $tipo,
+                'nome' => $nome,
+                'tipo' => $tipo,
                 'descricao' => $descricao
             ]
         );
@@ -87,7 +87,7 @@ class EstoqueLocalController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_POST['id'] ?? 0);
+        $id = (int) ($_POST['id'] ?? 0);
         $nome = trim($_POST['nome'] ?? '');
         $tipo = trim($_POST['tipo'] ?? 'acabados');
         $descricao = trim($_POST['descricao'] ?? '');
@@ -104,12 +104,12 @@ class EstoqueLocalController extends Controller
              SET nome = :nome, tipo = :tipo, descricao = :descricao, status = :status 
              WHERE id = :id AND tenant_id = :tenant_id",
             [
-                'id'        => $id,
+                'id' => $id,
                 'tenant_id' => $tenantId,
-                'nome'      => $nome,
-                'tipo'      => $tipo,
+                'nome' => $nome,
+                'tipo' => $tipo,
                 'descricao' => $descricao,
-                'status'    => $status
+                'status' => $status
             ]
         );
 
@@ -128,7 +128,7 @@ class EstoqueLocalController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int) ($_GET['id'] ?? 0);
 
         if ($id > 0) {
             Database::query(

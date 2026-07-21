@@ -39,7 +39,7 @@ class RelatorioController extends Controller
         foreach ($itens as $it) {
             $val = $it['valor_estoque'];
             $acumuladoValor += $val;
-            
+
             $porcUnitario = $valorEstoqueGlobal > 0 ? ($val / $valorEstoqueGlobal) * 100 : 0;
             $porcAcumulada = $valorEstoqueGlobal > 0 ? ($acumuladoValor / $valorEstoqueGlobal) * 100 : 0;
 
@@ -64,21 +64,21 @@ class RelatorioController extends Controller
             ];
         }
 
-        $total      = count($curva);
-        $perPage    = 10;
-        $page       = max(1, (int)($_GET['page'] ?? 1));
+        $total = count($curva);
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
         $curvaPaginada = array_slice($curva, $offset, $perPage);
 
         $this->render('relatorios/curva_abc', [
-            'title'            => 'Curva ABC de Matérias-Primas',
-            'subtitle'         => 'Classificação de relevância do estoque por valor financeiro acumulado',
-            'curva'            => $curvaPaginada,
+            'title' => 'Curva ABC de Matérias-Primas',
+            'subtitle' => 'Classificação de relevância do estoque por valor financeiro acumulado',
+            'curva' => $curvaPaginada,
             'valorTotalGlobal' => $valorEstoqueGlobal,
-            'pagination'       => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 
@@ -94,8 +94,8 @@ class RelatorioController extends Controller
         $tenantId = $_SESSION['tenant_id'];
 
         $mes = $_GET['mes'] ?? '';
-        $modeloId = !empty($_GET['modelo_id']) ? (int)$_GET['modelo_id'] : null;
-        $oficinaId = !empty($_GET['oficina_id']) ? (int)$_GET['oficina_id'] : null;
+        $modeloId = !empty($_GET['modelo_id']) ? (int) $_GET['modelo_id'] : null;
+        $oficinaId = !empty($_GET['oficina_id']) ? (int) $_GET['oficina_id'] : null;
 
         // Montar query dinâmica
         $sql = "SELECT rf.quantidade_defeito_perda, rf.data_retorno, op.id as op_id, op.produto_modelo_id,
@@ -131,7 +131,7 @@ class RelatorioController extends Controller
 
         foreach ($perdasBrutas as $p) {
             $mId = $p['produto_modelo_id'];
-            
+
             // Custo da peça a partir de sua Ficha Técnica (MP + MO)
             $custoMP = Database::fetch(
                 "SELECT SUM(fti.quantidade * mp.custo_unitario) as total 
@@ -166,30 +166,30 @@ class RelatorioController extends Controller
         }
 
         // Listas auxiliares para os selects de filtros
-        $modelos  = Database::fetchAll("SELECT id, nome, referencia FROM produtos_modelos WHERE tenant_id = :tenant_id", ['tenant_id' => $tenantId]);
+        $modelos = Database::fetchAll("SELECT id, nome, referencia FROM produtos_modelos WHERE tenant_id = :tenant_id", ['tenant_id' => $tenantId]);
         $oficinas = Database::fetchAll("SELECT id, nome FROM oficinas_faccoes WHERE tenant_id = :tenant_id", ['tenant_id' => $tenantId]);
 
-        $total      = count($perdasProcessadas);
-        $perPage    = 10;
-        $page       = max(1, (int)($_GET['page'] ?? 1));
+        $total = count($perdasProcessadas);
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
         $perdasPaginadas = array_slice($perdasProcessadas, $offset, $perPage);
 
         $this->render('relatorios/perdas', [
-            'title'         => 'Relatório de Perdas da Produção',
-            'subtitle'      => 'Apuração quantitativa e financeira de defeitos e perdas industriais',
-            'perdas'        => $perdasPaginadas,
-            'totalPecas'    => $totalPecasPerdidas,
-            'totalValor'    => $totalValorPerdido,
-            'modelos'       => $modelos,
-            'oficinas'      => $oficinas,
-            'filtroMes'     => $mes,
-            'filtroModelo'  => $modeloId,
+            'title' => 'Relatório de Perdas da Produção',
+            'subtitle' => 'Apuração quantitativa e financeira de defeitos e perdas industriais',
+            'perdas' => $perdasPaginadas,
+            'totalPecas' => $totalPecasPerdidas,
+            'totalValor' => $totalValorPerdido,
+            'modelos' => $modelos,
+            'oficinas' => $oficinas,
+            'filtroMes' => $mes,
+            'filtroModelo' => $modeloId,
             'filtroOficina' => $oficinaId,
-            'pagination'    => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
+            'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
 
@@ -203,7 +203,7 @@ class RelatorioController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $opId = (int)($_GET['op_id'] ?? 0);
+        $opId = (int) ($_GET['op_id'] ?? 0);
 
         // Listar OPs para select box
         $ops = Database::fetchAll(
@@ -308,16 +308,16 @@ class RelatorioController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $perPage  = 10;
-        $page     = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 10;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
-        $total = (int)(Database::fetch(
+        $total = (int) (Database::fetch(
             "SELECT COUNT(*) as total FROM controle_qualidade WHERE tenant_id = :tenant_id",
             ['tenant_id' => $tenantId]
         )['total'] ?? 0);
         $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
-        $page       = max(1, min($page, $totalPages));
-        $offset     = ($page - 1) * $perPage;
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $perPage;
 
         // Buscar inspeções registradas
         $inspecoes = Database::fetchAll(
@@ -341,10 +341,10 @@ class RelatorioController extends Controller
         );
 
         $this->render('relatorios/qualidade', [
-            'title'      => 'Controle de Qualidade',
-            'subtitle'   => 'Registre inspeções técnicas e catalogue tipos de defeitos encontrados nas peças',
-            'inspecoes'  => $inspecoes,
-            'ops'        => $ops,
+            'title' => 'Controle de Qualidade',
+            'subtitle' => 'Registre inspeções técnicas e catalogue tipos de defeitos encontrados nas peças',
+            'inspecoes' => $inspecoes,
+            'ops' => $ops,
             'pagination' => ['total' => $total, 'perPage' => $perPage, 'currentPage' => $page, 'totalPages' => $totalPages]
         ]);
     }
@@ -360,9 +360,9 @@ class RelatorioController extends Controller
         }
 
         $tenantId = $_SESSION['tenant_id'];
-        $ordem_producao_id = (int)($_POST['ordem_producao_id'] ?? 0);
-        $quantidade_aprovada = (int)($_POST['quantidade_aprovada'] ?? 0);
-        $quantidade_reprovada = (int)($_POST['quantidade_reprovada'] ?? 0);
+        $ordem_producao_id = (int) ($_POST['ordem_producao_id'] ?? 0);
+        $quantidade_aprovada = (int) ($_POST['quantidade_aprovada'] ?? 0);
+        $quantidade_reprovada = (int) ($_POST['quantidade_reprovada'] ?? 0);
         $tipo_defeito = trim($_POST['tipo_defeito'] ?? '');
         $responsavel = trim($_POST['responsavel'] ?? '');
 
