@@ -932,3 +932,15 @@ body.sidebar-collapsed .sidebar-collapse-button {
     user-select: none;
 }
 
+/* ==========================================================================
+   SUPORTE A ROLAGEM HORIZONTAL EM TABELAS E CARDS
+   ========================================================================== */
+.layout-split > * {
+    min-width: 0;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}

@@ -50,8 +50,8 @@
             <h3>Inspeções de Qualidade Registradas</h3>
         </div>
 
-        <div class="table-responsive">
-            <table class="table-custom">
+        <div class="table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table class="table-custom" style="min-width: 650px;">
                 <thead>
                     <tr>
                         <th>OP</th>
