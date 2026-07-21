@@ -2,9 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Core\Controller;
 use App\Core\Database;
 
-class CalendarioController extends BaseController
+class CalendarioController extends Controller
 {
     public function index(): void
     {
