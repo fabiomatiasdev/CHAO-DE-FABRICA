@@ -45,13 +45,13 @@
     </div>
 
     <!-- Tabela de Lançamentos de Inspeções -->
-    <div class="card-box">
+    <div class="card-box" style="min-width: 0; max-width: 100%; overflow: hidden;">
         <div class="card-title-box">
             <h3>Inspeções de Qualidade Registradas</h3>
         </div>
 
-        <div class="table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-            <table class="table-custom" style="min-width: 650px;">
+        <div class="table-responsive" style="width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; display: block;">
+            <table class="table-custom" style="min-width: 700px; width: 100%;">
                 <thead>
                     <tr>
                         <th>OP</th>

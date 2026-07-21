@@ -1,6 +1,6 @@
 <?php 
     $pParam = $pageParamName ?? 'page';
-    if (!empty($pagination) && $pagination['totalPages'] > 1): 
+    if (!empty($pagination) && isset($pagination['total']) && $pagination['total'] > 0): 
 ?>
 <div class="pagination-wrapper">
     <div class="pagination-info">
